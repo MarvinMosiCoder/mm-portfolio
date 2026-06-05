@@ -1,19 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import AOS from "aos";
 import "aos/dist/aos.css";
-
-// Resolve env vars across Vite, CRA, Next.js
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    "Missing Supabase env vars. Set VITE_*, REACT_APP_*, or NEXT_PUBLIC_* URL and ANON KEY."
-  );
-}
-
-const supabase = createClient(SUPABASE_URL as string, SUPABASE_ANON_KEY as string);
 
 // Optional: type for your table row
 export type UploadRow = {
@@ -89,80 +76,12 @@ const UploadFile: React.FC = () => {
       return;
     }
 
-    try {
-      setIsUploading(true);
-
-      const cleanName = file.name.replace(/\s+/g, "_");
-      const ext = cleanName.includes(".") ? cleanName.split(".").pop() : "bin";
-
-      // We'll store everything in a dedicated folder
-      const folder = "singleton";
-      const slot = "resume";
-      const objectName = `${slot}.${ext}`;                 // e.g., resume.pdf
-      const path = `${folder}/${objectName}`;              // singleton/resume.pdf
-
-      // (1) Clean up any previous resume.* so different extensions don't pile up
-      const { data: existing, error: listErr } = await supabase.storage
-        .from("uploads")
-        .list(folder);
-
-      if (listErr) {
-        // not fatal: continue (bucket could be empty/new)
-        console.warn("List error (ignored):", listErr.message);
-      } else if (existing?.length) {
-        const toRemove = existing
-          .filter((o) => o.name === slot || o.name.startsWith(`${slot}.`))
-          .map((o) => `${folder}/${o.name}`);
-
-        if (toRemove.length) {
-          // Remove old variants (e.g., resume.docx) before writing new one
-          const { error: rmErr } = await supabase.storage.from("uploads").remove(toRemove);
-          if (rmErr) console.warn("Remove warning:", rmErr.message);
-        }
-      }
-
-      // (2) Upload new file at the deterministic path (overwrite if it already exists)
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(path, file, {
-          upsert: true, // atomic replace
-          cacheControl: "3600",
-          contentType: file.type || undefined,
-        });
-
-      if (uploadError) throw uploadError;
-      setProgress(100);
-
-      // (3) Public URL (works if bucket is public)
-      const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(path);
-      const publicUrl = urlData?.publicUrl ?? null;
-
-      // (4) Upsert the single metadata row keyed by slot
-      const row: UploadRow = {
-        original_name: file.name,
-        storage_path: path,
-        public_url: publicUrl,
-        size: file.size,
-        type: file.type || null,
-        slot,
-      };
-
-      const { error: upsertErr } = await supabase
-        .from("uploads")
-        .upsert(row, { onConflict: "slot" });
-
-      if (upsertErr) throw upsertErr;
-
-      setMessage(`Uploaded and replaced the current resume successfully.`);
-      setFile(null);
-      if (inputRef.current) inputRef.current.value = "";
-      console.log("Public URL:", publicUrl);
-    } catch (err: any) {
-      console.error(err);
-      setMessage(err?.message || "Upload failed. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
+    setIsUploading(true);
+    setProgress(100);
+    setMessage("Upload is disabled because Supabase was removed.");
+    setFile(null);
+    if (inputRef.current) inputRef.current.value = "";
+    setIsUploading(false);
   };
 
   return (

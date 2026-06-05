@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { supabase } from "../../lib/supabaseClient";
 import Input from '../../Components/Forms/Input';
 
 interface ProfileFormInterface{
@@ -49,16 +48,9 @@ const ProfileForm: React.FC = () => {
     }
     setLoading(true);
 
-    try {
-      const { error: insertError } = await supabase.from('profiles').insert([form]);
-      if(insertError) throw insertError;
-      setSuccess("Saved! Your resume record was inserted.");
-      setForm(initialForm);
-    } catch (err: any) {
-      setError(err?.message || "Something went wrong while saving.");
-    } finally {
-      setLoading(false);
-    }
+    setSuccess("Resume data saving is disabled because Supabase was removed.");
+    setForm(initialForm);
+    setLoading(false);
   }
   return (
     <>

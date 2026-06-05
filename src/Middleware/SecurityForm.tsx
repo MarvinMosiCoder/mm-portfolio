@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FaKey, FaEnvelope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
 
 const SecurityForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -15,16 +14,9 @@ const SecurityForm: React.FC = () => {
     event.preventDefault();
     setError("");
     setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-
-    if (error) {
-      setError(error.message || "Login failed. Please try again.");
-      return;
-    }
-
-    navigate("/dashboard");
+    setError("Admin login is disabled because Supabase was removed.");
+    navigate("/");
   };
 
   return (

@@ -1,15 +1,13 @@
 // src/pages/Dashboard.tsx
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/admin'); // or '/login'
+  const handleSignOut = () => {
+    navigate('/');
   };
 
   const navLinkBase =
