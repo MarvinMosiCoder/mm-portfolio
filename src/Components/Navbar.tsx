@@ -12,9 +12,9 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
   const primary =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent";
+    "brand-gradient-text";
   const primaryHover =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400";
+    "brand-link-hover";
   const textGray = "text-gray-700 dark:text-gray-300";
 
   const sections = useMemo(
@@ -127,8 +127,8 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
         ref={headerRef}
         className={`fixed inset-x-0 top-0 z-40 w-full
           ${darkMode
-            ? "bg-neutral-950 border-b border-neutral-800"
-            : "bg-white border-b border-gray-200"}
+            ? "bg-[#070b14]/90 border-b border-cyan-300/10"
+            : "bg-white/90 border-b border-teal-500/15"}
           p-3 flex items-center justify-between`}
       >
         <div
@@ -155,7 +155,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
                           activeIndex === index
                             ? primary + " font-bold blur-none"
                             : "opacity-80 transition"
-                        } hover:${primaryHover} transition duration-300 ease-in-out cursor-pointer`}
+                        } ${primaryHover} transition duration-300 ease-in-out cursor-pointer`}
                       >
                         {item}
                       </RouterLink>
@@ -170,7 +170,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
                           activeIndex === index
                             ? primary + " font-bold blur-none"
                             : "opacity-80 transition"
-                        } hover:${primaryHover} transition duration-300 ease-in-out cursor-pointer`}
+                        } ${primaryHover} transition duration-300 ease-in-out cursor-pointer`}
                       >
                         {item}
                       </Link>
@@ -217,7 +217,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
         ${
           darkMode
             ? "bg-neutral-900 text-white border-l border-neutral-800"
-            : "bg-white text-gray-900 border-l border-gray-200"
+            : "bg-white text-gray-900 border-l border-teal-500/15"
         }
         shadow-xl transition-transform duration-300 ease-in-out ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
@@ -273,7 +273,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
                         activeIndex === index
                           ? primary + " font-bold blur-none"
                           : `${textGray} hover:opacity-100`
-                      } block px-3 py-3 cursor-pointer rounded-xl text-base hover:${primaryHover} transition`}
+                      } block px-3 py-3 cursor-pointer rounded-xl text-base ${primaryHover} transition`}
                     >
                       {item}
                     </RouterLink>
@@ -288,7 +288,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode }) => {
                         activeIndex === index
                           ? `${primary} font-bold blur-none`
                           : `${textGray} hover:opacity-100`
-                      } hover:${primaryHover} transition`}
+                      } ${primaryHover} transition`}
                     >
                       {item}
                     </Link>

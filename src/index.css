@@ -60,6 +60,16 @@ body {
   font-family: "Poppins", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --brand-teal: #0f766e;
+  --brand-cyan: #0891b2;
+  --brand-pink: #c026d3;
+  --brand-ink: #070b14;
+}
+
+html.dark body {
+  --brand-teal: #14b8a6;
+  --brand-cyan: #67e8f9;
+  --brand-pink: #f0abfc;
 }
 
 code {
@@ -67,4 +77,41 @@ code {
     monospace;
 }
 
+.brand-gradient-text {
+  background-image: linear-gradient(90deg, var(--brand-teal), var(--brand-cyan), var(--brand-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-gradient-bg {
+  background-image: linear-gradient(90deg, var(--brand-teal), var(--brand-cyan), var(--brand-pink));
+}
+
+.brand-ring {
+  border-color: rgba(103, 232, 249, 0.35);
+  box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.08), 0 18px 50px rgba(20, 184, 166, 0.08);
+}
+
+.brand-link-hover:hover {
+  color: var(--brand-cyan);
+}
+
+.brand-focus:focus {
+  border-color: var(--brand-teal);
+}
+
+.portfolio-shell {
+  background:
+    radial-gradient(circle at 20% 8%, rgba(20, 184, 166, 0.12), transparent 26rem),
+    radial-gradient(circle at 82% 18%, rgba(240, 171, 252, 0.10), transparent 24rem),
+    #ffffff;
+}
+
+.dark .portfolio-shell {
+  background:
+    radial-gradient(circle at 20% 8%, rgba(20, 184, 166, 0.12), transparent 26rem),
+    radial-gradient(circle at 82% 18%, rgba(240, 171, 252, 0.08), transparent 24rem),
+    var(--brand-ink);
+}
 

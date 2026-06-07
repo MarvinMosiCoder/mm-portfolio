@@ -72,7 +72,13 @@ The portfolio uses a modern, minimal developer profile style. Keep the design di
 
 Current design direction:
 
+- Opening loader uses a circular monogram `M` with a double-ring SVG mark, animated stroke drawing, and a teal/cyan/soft-pink glow.
+- Public portfolio brand colors are shared through CSS variables and utilities in `src/index.css`.
+- Brand palette:
+  - Light theme uses deeper readable tones: teal `#0f766e`, cyan `#0891b2`, and pink `#c026d3`.
+  - Dark theme uses brighter glow tones: teal `#14b8a6`, cyan `#67e8f9`, and pink `#f0abfc`.
 - Hero section introduces Marvin clearly with resume and contact CTAs.
+- The `View Resume` hero CTA intentionally stays neutral black/white instead of using the brand gradient.
 - Core stack badges highlight Laravel, React, TypeScript, Tailwind, MySQL, Supabase, n8n Automation, CloudPanel, and cPanel.
 - Social links stay with the main hero content instead of inside the availability panel.
 - Project and experience cards use short impact/focus lines before longer descriptions.
@@ -82,13 +88,32 @@ Current design direction:
 
 When updating the UI:
 
-1. Prefer left-aligned readable text instead of justified paragraphs.
-2. Keep section spacing compact and consistent with Tailwind spacing utilities such as `py-8`, `py-10`, and `py-12`.
-3. Avoid active navigation styles that shift layout; use color, weight, or underline states instead.
-4. Use rounded `md` controls and cards for a clean application-like portfolio style.
-5. Use project screenshots or meaningful product visuals when available instead of generic logos only.
-6. Keep CTA labels clear and action-focused, such as `View Resume`, `Contact Me`, and `Other projects`.
-7. Replace placeholder project links such as `https://your-backtradelab-link.com` when a real project URL is available.
+1. Prefer the shared brand utilities `brand-gradient-text`, `brand-gradient-bg`, `brand-ring`, `brand-link-hover`, `brand-focus`, and `portfolio-shell` instead of repeating hardcoded gradient classes.
+2. Keep light-theme brand text readable by using the CSS variables rather than fixed bright cyan/pink Tailwind classes on white backgrounds.
+3. Prefer left-aligned readable text instead of justified paragraphs.
+4. Keep section spacing compact and consistent with Tailwind spacing utilities such as `py-8`, `py-10`, and `py-12`.
+5. Avoid active navigation styles that shift layout; use color, weight, or underline states instead.
+6. Use rounded `md` controls and cards for a clean application-like portfolio style.
+7. Use project screenshots or meaningful product visuals when available instead of generic logos only.
+8. Keep CTA labels clear and action-focused, such as `View Resume`, `Contact Me`, and `Other projects`.
+9. Replace placeholder project links such as `https://your-backtradelab-link.com` when a real project URL is available.
+
+## Brand Styling Notes
+
+The main portfolio shell is styled in `src/Components/Content.tsx` with the `portfolio-shell` utility. It adds subtle teal and pink radial glows in both themes while preserving a white base in light mode and a dark ink base in dark mode.
+
+Reusable brand utilities live in `src/index.css`:
+
+- `brand-gradient-text` - adaptive teal/cyan/pink gradient text.
+- `brand-gradient-bg` - adaptive teal/cyan/pink gradient background.
+- `brand-ring` - subtle branded border and glow for framed content.
+- `brand-link-hover` - cyan hover color for text links.
+- `brand-focus` - teal focus border for form controls.
+- `portfolio-shell` - page background treatment.
+
+When adding new public-facing UI, prefer these utilities so the site keeps one visual system. If a component needs fixed icon or border colors, choose darker teal variants for light mode and brighter cyan variants for dark mode.
+
+The loading gate is implemented in `src/Components/LoadingGate.tsx`. Keep its monogram centered inside the circular SVG viewbox so the opening mark stays aligned across desktop and mobile.
 
 ## Resume Download Process
 

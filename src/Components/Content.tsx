@@ -45,8 +45,8 @@ const Content: React.FC = () => {
     <>
       {/* Background and text switch automatically with Tailwind dark classes */}
       <div
-        className={`min-h-screen transition-colors duration-500 
-        ${darkMode ? "bg-neutral-950 text-white" : "bg-white text-neutral-900"} 
+        className={`portfolio-shell min-h-screen transition-colors duration-500 
+        ${darkMode ? "text-white" : "text-neutral-900"} 
         antialiased selection:bg-neutral-800/80 selection:text-white `}
       >
         

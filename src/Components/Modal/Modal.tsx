@@ -42,7 +42,7 @@ const Modal: React.FC<ModalProps> = ({ show, onClose, title, modalData }) => {
                             href={dataInfo.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="pl-2 text-blue-200 underline"
+                            className="pl-2 text-cyan-200 underline"
                         >
                             More info
                         </a>

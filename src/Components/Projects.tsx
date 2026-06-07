@@ -74,9 +74,9 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
   const [modalData, setModalData] = useState<Tech>("");
 
   const primary =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent";
+    "brand-gradient-text";
   const primaryHover =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400";
+    "brand-link-hover";
   useEffect(() => {
     AOS.init({
       duration: 1200,
@@ -115,11 +115,11 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
         <div className="flex flex-col gap-4 lg:pb-8 lg:flex-row">
           <Link to="other-projects" className="cursor-pointer group">
             <h2 className={`flex gap-1 ${darkMode ? "text-gray-300" : "text-gray-600"} text-lg items-center`}>
-              <span className={`font-bold group-hover:${primaryHover} transition-colors`}>
+              <span className={`font-bold ${primaryHover} transition-colors`}>
                 Other projects
               </span>
               <FaArrowRight
-                className={`${darkMode ? "text-gray-300" : "text-gray-600"} group-hover:${primaryHover} mt-[2px] transition-colors`}
+                className={`${darkMode ? "text-gray-300" : "text-gray-600"} ${primaryHover} mt-[2px] transition-colors`}
                 size={15}
               />
             </h2>
@@ -152,8 +152,8 @@ function ProjectCard({
   const baseCard =
     "flex flex-col gap-4 mb-5 border p-4 rounded-md lg:flex-row transition-colors duration-300";
   const themeClasses = darkMode
-    ? "border-white/10 bg-neutral-900/60 text-gray-200 hover:bg-neutral-800/70 hover:border-white/20"
-    : "border-neutral-300/60 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-neutral-300";
+    ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:bg-neutral-800/70 hover:border-cyan-300/25"
+    : "border-teal-500/15 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-teal-500/35";
 
   return (
     <div
@@ -162,7 +162,7 @@ function ProjectCard({
       data-aos-delay={item.aos.delay}
     >
       {/* LEFT: image */}
-      <div className="grid min-h-[130px] place-items-center rounded-md bg-white/5 lg:w-[180px] shrink-0">
+      <div className={`grid min-h-[130px] place-items-center rounded-md lg:w-[180px] shrink-0 ${darkMode ? "bg-cyan-300/5" : "bg-teal-500/5"}`}>
         <img
           src={item.imageSrc}
           alt={item.imageAlt}
@@ -174,7 +174,7 @@ function ProjectCard({
       {/* RIGHT: content */}
       <div className="flex-1">
         <h2 className="text-lg font-semibold">{item.title}</h2>
-        <p className={`${darkMode ? "text-cyan-300" : "text-blue-700"} mt-1 text-sm font-medium`}>
+        <p className={`${darkMode ? "text-cyan-300" : "text-teal-700"} mt-1 text-sm font-medium`}>
           {item.impact}
         </p>
         <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} mt-2 text-sm leading-relaxed tracking-normal`}>{item.description}</p>
@@ -184,7 +184,7 @@ function ProjectCard({
             <div key={tech}>
               <button
                 type="button"
-                className={`mt-2 px-2 py-1 border ${darkMode ? 'border-teal-300' : 'border-neutral-300/60 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-neutral-300'} ${primary} hover:text-[#0a192f] rounded-md transition-colors duration-300`}
+                className={`mt-2 px-2 py-1 border ${darkMode ? 'border-cyan-300/35 bg-cyan-300/5' : 'border-teal-500/20 bg-white/70 hover:bg-teal-500/5 hover:border-teal-500/40'} ${primary} rounded-md transition-colors duration-300`}
                 onClick={onTechClick ? () => onTechClick(tech) : undefined}
                 aria-label={`Show details for ${tech}`}
               >

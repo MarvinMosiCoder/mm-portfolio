@@ -108,10 +108,10 @@ const Contact: React.FC<any> = ({ darkMode }) => {
         <ToastContainer />
         <div className="pb-8">
             <div className="text-center mb-6">
-                <h2 className="text-center items-center text-3xl font-bold mt-4 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent">
+                <h2 className="brand-gradient-text text-center items-center text-3xl font-bold mt-4">
                 Get in touch
                 </h2>
-                <span className="text-center items-center text-sm font-medium mt-[30px] bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent">
+                <span className="brand-gradient-text text-center items-center text-sm font-medium mt-[30px]">
                 Let's talk about your project
                 </span>
             </div>
@@ -145,15 +145,15 @@ const Contact: React.FC<any> = ({ darkMode }) => {
                 <div className="flex flex-col gap-5 mb-6 lg:flex-row">
                 {/* Name */}
                 <div className="w-full relative">
-                    <FaUser className="absolute left-0 top-3 text-blue-400" size={18} />
+                    <FaUser className={`absolute left-0 top-3 ${darkMode ? "text-cyan-400" : "text-teal-600"}`} size={18} />
                     <input
                     name="name"
                     type="text"
                     placeholder="Your name"
                     className={`w-full bg-transparent text-sm text-gray-900 ${darkMode ? 'dark:text-gray-100' : 'dark:text-gray-600' } pl-7 pr-2 py-2
                     border-0 border-b-2 ${
-                        formErrors.name ? "border-red-500" : "border-blue-400"
-                    } focus:outline-none focus:ring-0 focus:border-teal-600 placeholder-gray-400`}
+                        formErrors.name ? "border-red-500" : darkMode ? "border-cyan-400/70" : "border-teal-600/70"
+                    } brand-focus focus:outline-none focus:ring-0 placeholder-gray-400`}
                     value={formData.name}
                     onChange={handleChange}
                     aria-invalid={!!formErrors.name}
@@ -168,7 +168,7 @@ const Contact: React.FC<any> = ({ darkMode }) => {
 
                 {/* Phone */}
                 <div className="w-full relative">
-                    <FaPhone className="absolute left-0 top-3 text-blue-400" size={18} />
+                    <FaPhone className={`absolute left-0 top-3 ${darkMode ? "text-cyan-400" : "text-teal-600"}`} size={18} />
                     <input
                     name="phone"
                     type="tel"
@@ -176,8 +176,8 @@ const Contact: React.FC<any> = ({ darkMode }) => {
                     className={`w-full bg-transparent text-sm text-gray-900 ${darkMode ? 'dark:text-gray-100' : 'dark:text-gray-600' }  pl-7 pr-2 py-2
                     border-0 border-b-2 
                     ${
-                        formErrors.phone ? "border-red-500" : "border-blue-500"
-                    } focus:outline-none focus:ring-0 focus:border-teal-600 placeholder-gray-400`}
+                        formErrors.phone ? "border-red-500" : darkMode ? "border-cyan-400/70" : "border-teal-600/70"
+                    } brand-focus focus:outline-none focus:ring-0 placeholder-gray-400`}
                     value={formData.phone}
                     onChange={handleChange}
                     aria-invalid={!!formErrors.phone}
@@ -192,15 +192,15 @@ const Contact: React.FC<any> = ({ darkMode }) => {
 
                 {/* Email */}
                 <div className="w-full relative">
-                    <FaEnvelope className="absolute left-0 top-3 text-blue-400" size={18} />
+                    <FaEnvelope className={`absolute left-0 top-3 ${darkMode ? "text-cyan-400" : "text-teal-600"}`} size={18} />
                     <input
                     name="email"
                     type="email"
                     placeholder="Your email"
                     className={`w-full bg-transparent text-sm text-gray-900 ${darkMode ? 'dark:text-gray-100' : 'dark:text-gray-600' } pl-7 pr-2 py-2
                     border-0 border-b-2 ${
-                        formErrors.email ? "border-red-500" : "border-blue-500"
-                    } focus:outline-none focus:ring-0 focus:border-teal-600 placeholder-gray-400`}
+                        formErrors.email ? "border-red-500" : darkMode ? "border-cyan-400/70" : "border-teal-600/70"
+                    } brand-focus focus:outline-none focus:ring-0 placeholder-gray-400`}
                     value={formData.email}
                     onChange={handleChange}
                     aria-invalid={!!formErrors.email}
@@ -216,15 +216,15 @@ const Contact: React.FC<any> = ({ darkMode }) => {
 
                 {/* Message */}
                 <div className="relative">
-                <FaCommentAlt className="absolute left-0 top-3 text-blue-400" size={18} />
+                <FaCommentAlt className={`absolute left-0 top-3 ${darkMode ? "text-cyan-400" : "text-teal-600"}`} size={18} />
                 <textarea
                     name="message"
                     id="message"
                     placeholder="Your message"
                     className={`block w-full h-32 bg-transparent text-sm text-gray-900 ${darkMode ? 'dark:text-gray-100' : 'dark:text-gray-600' } pl-7 pr-2 py-2
                     border-0 border-b-2 ${
-                    formErrors.message ? "border-red-500" : "border-blue-500"
-                    } focus:outline-none focus:ring-0 focus:border-blue-600 placeholder-gray-400`}
+                    formErrors.message ? "border-red-500" : darkMode ? "border-cyan-400/70" : "border-teal-600/70"
+                    } brand-focus focus:outline-none focus:ring-0 placeholder-gray-400`}
                     value={formData.message}
                     onChange={handleChange}
                     aria-invalid={!!formErrors.message}
@@ -242,7 +242,11 @@ const Contact: React.FC<any> = ({ darkMode }) => {
                 <button
                     disabled={loading}
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-6 py-2 text-sm font-semibold text-blue-300 transition-colors duration-300 hover:border-blue-400 hover:bg-blue-400/10 disabled:opacity-60"
+                    className={`inline-flex items-center gap-2 rounded-md border px-6 py-2 text-sm font-semibold transition-colors duration-300 disabled:opacity-60 ${
+                        darkMode
+                            ? "border-cyan-300/60 text-cyan-300 hover:border-cyan-300 hover:bg-cyan-300/10"
+                            : "border-teal-600/60 text-teal-700 hover:border-teal-600 hover:bg-teal-600/10"
+                    }`}
                 >
                     <FaPaperPlane size={14} />
                     {loading ? "Sending..." : "Send"}
@@ -274,8 +278,8 @@ function ContactLink({
             rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
             className={`rounded-md border p-3 transition ${
                 darkMode
-                    ? "border-white/10 bg-neutral-900/60 text-gray-200 hover:border-white/20 hover:bg-neutral-800/70"
-                    : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300 hover:bg-neutral-50"
+                    ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-800/70"
+                    : "border-teal-500/15 bg-white/80 text-neutral-800 hover:border-teal-500/35 hover:bg-white/95"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-semibold">

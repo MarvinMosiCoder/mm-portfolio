@@ -15,7 +15,7 @@ export type UploadRow = {
 
 const UploadFile: React.FC = () => {
   const primary =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent";
+    "brand-gradient-text";
 
   // ---- THEME STATE ----
   const [darkMode, setDarkMode] = useState<boolean>(() => {

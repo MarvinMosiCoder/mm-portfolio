@@ -32,26 +32,59 @@ const LoadingGate: React.FC<LoadingGateProps> = ({
     return (
       <StyledWrapper>
         <div className="stage" role="status" aria-live="polite" aria-label="Loading">
-          {/* Line-drawn M */}
+          {/* Circular monogram M */}
             <svg
                 className="logo"
-                viewBox="0 0 160 140"
-                width="160"
-                height="140"
+                viewBox="0 0 180 180"
+                width="180"
+                height="180"
                 aria-hidden="true"
             >
                 <defs>
-                    <linearGradient id="mGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="var(--grad-from)" />
-                    <stop offset="50%" stopColor="var(--grad-via)" />
-                    <stop offset="100%" stopColor="var(--grad-to)" />
+                    <linearGradient id="mGradient" x1="12%" y1="88%" x2="88%" y2="12%">
+                        <stop offset="0%" stopColor="var(--grad-from)" />
+                        <stop offset="44%" stopColor="var(--grad-via)" />
+                        <stop offset="100%" stopColor="var(--grad-to)" />
+                    </linearGradient>
+                    <linearGradient id="shineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+                        <stop offset="48%" stopColor="rgba(255,255,255,0.9)" />
+                        <stop offset="100%" stopColor="rgba(255,255,255,0)" />
                     </linearGradient>
                 </defs>
 
-                <path
-                    d="M20 120 L20 20 L80 120 L140 20 L140 120"
+                <circle
+                    className="ring ring-soft"
+                    cx="90"
+                    cy="90"
+                    r="67"
                     pathLength={1}
-                    className="stroke"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <circle
+                    className="ring"
+                    cx="90"
+                    cy="90"
+                    r="60"
+                    pathLength={1}
+                    vectorEffect="non-scaling-stroke"
+                />
+                <path
+                    d="M49 119 L49 61 L90 116 L131 61 L131 119"
+                    pathLength={1}
+                    className="monogram-shadow"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <path
+                    d="M50 119 L50 61 L90 116 L130 61 L130 119"
+                    pathLength={1}
+                    className="monogram"
+                    vectorEffect="non-scaling-stroke"
+                />
+                <path
+                    d="M60 48 C76 38 104 38 120 48"
+                    pathLength={1}
+                    className="shine"
                     vectorEffect="non-scaling-stroke"
                 />
             </svg>
@@ -64,29 +97,29 @@ const LoadingGate: React.FC<LoadingGateProps> = ({
 };
 
 const StyledWrapper = styled.div`
-  /* Dark background and centering */
   min-height: 100dvh;
   width: 100%;
   display: grid;
   place-items: center;
-  background: #0b1120; /* dark slate */
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.16), transparent 18rem),
+    #070b14;
 
-  /* Tailwind-like gradient as CSS variables */
-  --grad-from: #2563eb; /* blue-600 */
-  --grad-via:  #6366f1; /* indigo-500 */
-  --grad-to:   #9333ea; /* purple-600 */
+  --grad-from: #14b8a6;
+  --grad-via:  #67e8f9;
+  --grad-to:   #f0abfc;
 
   @media (prefers-color-scheme: dark) {
-    --grad-from: #22d3ee; /* cyan-400 */
-    --grad-via:  #60a5fa; /* blue-400 */
-    --grad-to:   #f472b6; /* pink-400 */
+    --grad-from: #14b8a6;
+    --grad-via:  #67e8f9;
+    --grad-to:   #f0abfc;
   }
 
-  /* Also support a root class */
   :where(.dark) & {
-    --grad-from: #22d3ee;
-    --grad-via:  #60a5fa;
-    --grad-to:   #f472b6;
+    --grad-from: #14b8a6;
+    --grad-via:  #67e8f9;
+    --grad-to:   #f0abfc;
   }
 
   .stage {
@@ -97,36 +130,98 @@ const StyledWrapper = styled.div`
 
   .logo {
     display: block;
+    width: min(52vw, 180px);
+    height: auto;
+    overflow: visible;
   }
 
-  /* Common stroke style */
-  .stroke {
+  .ring,
+  .monogram,
+  .monogram-shadow,
+  .shine {
     fill: none;
-    stroke: url(#mGradient);
-    stroke-width: 10;
     stroke-linecap: round;
     stroke-linejoin: round;
-
-    /* line-draw animation via dashoffset */
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: draw 1s ease forwards, glow 2.8s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.25));
   }
 
-  /* Stagger the strokes so the M draws in sequence */
-    .s1 { animation-delay: 0s, 0s; }
-    .s2 { animation-delay: 0.10s, 0s; }
-    .s3 { animation-delay: 0.20s, 0s; }
-    .s4 { animation-delay: 0.30s, 0s; }
+  .ring {
+    stroke: url(#mGradient);
+    stroke-width: 3.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0.9;
+    animation: draw 0.85s cubic-bezier(0.65, 0, 0.35, 1) forwards,
+      glow 2.8s ease-in-out 1s infinite;
+    filter:
+      drop-shadow(0 0 10px rgba(20, 184, 166, 0.26))
+      drop-shadow(0 0 22px rgba(240, 171, 252, 0.13));
+  }
+
+  .ring-soft {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 11;
+    animation-delay: 0.05s, 1s;
+    filter: blur(0.2px);
+  }
+
+  .monogram-shadow {
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 16;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 0.9s ease-out 0.18s forwards;
+  }
+
+  .monogram {
+    stroke: url(#mGradient);
+    stroke-width: 10;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 0.95s cubic-bezier(0.65, 0, 0.35, 1) 0.22s forwards,
+      glow 2.8s ease-in-out 1.15s infinite;
+    filter:
+      drop-shadow(0 0 10px rgba(20, 184, 166, 0.28))
+      drop-shadow(0 0 24px rgba(240, 171, 252, 0.16));
+  }
+
+  .shine {
+    stroke: url(#shineGradient);
+    stroke-width: 5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: glint 1.2s ease 0.95s forwards;
+  }
 
   @keyframes draw {
     to { stroke-dashoffset: 0; }
   }
 
   @keyframes glow {
-    0%, 100% { filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.20)); }
-    50%      { filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.30)); }
+    0%, 100% {
+      filter:
+        drop-shadow(0 0 10px rgba(20, 184, 166, 0.24))
+        drop-shadow(0 0 24px rgba(240, 171, 252, 0.14));
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 18px rgba(103, 232, 249, 0.35))
+        drop-shadow(0 0 34px rgba(240, 171, 252, 0.22));
+    }
+  }
+
+  @keyframes glint {
+    0% {
+      opacity: 0;
+      stroke-dashoffset: 1;
+    }
+    35%, 70% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      stroke-dashoffset: 0;
+    }
   }
 `;
 

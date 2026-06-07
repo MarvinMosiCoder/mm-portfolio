@@ -27,14 +27,7 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
           </p>
 
           <h1 className="mt-3 text-5xl font-bold leading-[1.05] tracking-normal sm:text-6xl md:text-7xl">
-            <span
-              className="
-                bg-gradient-to-r
-                from-blue-600 via-indigo-500 to-purple-600
-                dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400
-                bg-clip-text text-transparent
-              "
-            >
+            <span className="brand-gradient-text">
               Marvin Mosico
             </span>
           </h1>
@@ -59,8 +52,8 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
               href="mailto:marvinmosicoo@gmail.com"
               className={`inline-flex items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold transition ${
                 darkMode
-                  ? "border-white/15 text-gray-100 hover:border-white/30 hover:bg-white/5"
-                  : "border-neutral-300 text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
+                  ? "border-cyan-300/20 text-gray-100 hover:border-cyan-300/40 hover:bg-cyan-300/5"
+                  : "border-teal-500/25 text-neutral-800 hover:border-teal-500/45 hover:bg-teal-500/5"
               }`}
             >
               <FaEnvelope size={15} />
@@ -74,8 +67,8 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
                 key={item}
                 className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
                   darkMode
-                    ? "border-white/10 bg-neutral-900/70 text-gray-300"
-                    : "border-neutral-200 bg-neutral-50 text-neutral-700"
+                    ? "border-cyan-300/10 bg-neutral-900/70 text-cyan-50"
+                    : "border-teal-500/15 bg-white/70 text-neutral-700"
                 }`}
               >
                 {item}
@@ -114,8 +107,8 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
         <aside
           className={`rounded-md border p-4 ${
             darkMode
-              ? "border-white/10 bg-neutral-900/60"
-              : "border-neutral-200 bg-white"
+              ? "brand-ring border-cyan-300/10 bg-neutral-900/60"
+              : "brand-ring border-teal-500/15 bg-white/80"
           }`}
         >
           <p className="text-xs uppercase tracking-wide text-gray-500">
@@ -151,8 +144,8 @@ function CTA({
       href={href}
       className={`group inline-flex items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-medium backdrop-blur transition-all duration-300 ${
         darkMode
-          ? "border-white/10 bg-neutral-900/60 text-gray-200 hover:border-white/20 hover:bg-neutral-800/70"
-          : "border-neutral-200/60 bg-white/70 text-gray-800 hover:border-neutral-300 hover:bg-white/90"
+          ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-800/70"
+          : "border-teal-500/15 bg-white/70 text-gray-800 hover:border-teal-500/35 hover:bg-white/90"
       }`}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer noopener" : undefined}

@@ -76,7 +76,7 @@ function normalizeUrl(url?: string) {
 
 export default function Resume({ data }: ResumeProps) {
   const primary =
-    "bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent";
+    "brand-gradient-text";
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
@@ -119,9 +119,9 @@ export default function Resume({ data }: ResumeProps) {
         "
       >
         <h2 className="flex gap-1 text-teal-200 text-base md:text-lg fixed left-1 top-4 md:static z-10 print:hidden">
-          <Link to="/" className={`cursor-pointer flex gap-1 ${primary} fixed top-4 left-4 px-3 py-2 rounded-full shadow-lg text-xs md:text-sm hover:opacity-90 active:scale-[0.99] print:hidden border border-slate-200`}>   
-            <FaArrowLeft className={`text-indigo-200 hover:text-indigo-300 mt-[2px] md:mt-[4px] transition duration-300`} size={12} />
-            <span className={`font-bold hover:text-indigo-300`}>Back</span>
+          <Link to="/" className={`cursor-pointer flex gap-1 ${primary} fixed top-4 left-4 px-3 py-2 rounded-full shadow-lg text-xs md:text-sm hover:opacity-90 active:scale-[0.99] print:hidden border border-cyan-300/30 bg-white/90`}>   
+            <FaArrowLeft className={`text-cyan-300 mt-[2px] md:mt-[4px] transition duration-300`} size={12} />
+            <span className="font-bold">Back</span>
           </Link>
         </h2>
         <div className="resume-print-content px-8 py-8 md:px-9 md:py-8 print:px-[28px] print:py-[26px]">
@@ -372,7 +372,7 @@ export default function Resume({ data }: ResumeProps) {
         title="Download resume as PDF"
       >
         <span className={`flex items-center gap-2 ${primary}`}>
-          <FaFileDownload className={`text-indigo-200 mt-[2px] transition duration-300`} size={14} />
+          <FaFileDownload className={`text-cyan-300 mt-[2px] transition duration-300`} size={14} />
           <span className="hidden sm:inline">Download</span>
         </span>
       </button>

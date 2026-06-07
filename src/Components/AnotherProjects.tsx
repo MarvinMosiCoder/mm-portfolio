@@ -32,7 +32,7 @@ const AnotherProjects: React.FC = () => {
   return (
     <div
       className={`${
-        darkMode ? 'bg-neutral-950 text-white' : 'bg-white text-neutral-900'
+        darkMode ? 'portfolio-shell text-white' : 'portfolio-shell text-neutral-900'
       } min-h-screen h-full items-center text-left pl-[30px] pr-[30px] pt-[30px] lg:pt-[30px] lg:pr-[80px]`}
     >
       <h2 className="flex gap-1 text-teal-200 text-lg">
@@ -41,18 +41,14 @@ const AnotherProjects: React.FC = () => {
             className="text-teal-100 hover:text-teal-300 mt-[8px] transition duration-300"
             size={12}
           />
-          <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent font-bold hover:text-teal-300">
+          <span className="brand-gradient-text font-bold">
             Back
           </span>
         </Link>
       </h2>
 
       <div className="flex items-center">
-        <h2
-          className={`text-center ${
-            darkMode ? 'text-gray-300' : 'text-gray-600'
-          } pb-10 text-[40px] font-bold px-4`}
-        >
+        <h2 className="brand-gradient-text text-center pb-10 text-[40px] font-bold px-4">
           ALL PROJECTS
         </h2>
       </div>

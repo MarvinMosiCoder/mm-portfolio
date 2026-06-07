@@ -27,7 +27,7 @@ const TableRow: React.FC<TableRowProps> = ({ project, darkMode }) => (
                 {project.build_with.map((tech, index) => (
                     <button
                         key={index}
-                        className={`p-1 m-1 border ${darkMode ? 'border-teal-300' : 'border-neutral-300/60 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-neutral-300'} bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-cyan-400 dark:via-blue-400 dark:to-pink-400 bg-clip-text text-transparent hover:bg-teal-300 hover:text-[#0a192f] rounded-md transition-colors duration-300`}
+                        className={`brand-gradient-text p-1 m-1 border ${darkMode ? 'border-cyan-300/35 bg-cyan-300/5' : 'border-teal-500/20 bg-white/70 hover:bg-teal-500/5 hover:border-teal-500/40'} rounded-md transition-colors duration-300`}
                     >
                         {tech}
                     </button>
