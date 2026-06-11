@@ -7,6 +7,7 @@ import Contact from './Contact';
 import AOS from "aos";
 import "aos/dist/aos.css";
 import Navbar from './Navbar';
+import LiquidEther from './Reactbits/LiquidEther';
 
 const Content: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -19,6 +20,9 @@ const Content: React.FC = () => {
     }
     return true;
   });
+  const liquidEtherColors = darkMode
+    ? ['#14b8a6', '#67e8f9', '#f0abfc']
+    : ['#0f766e', '#0891b2', '#c026d3'];
 
   // Initialize AOS animations
   useEffect(() => {
@@ -45,13 +49,32 @@ const Content: React.FC = () => {
     <>
       {/* Background and text switch automatically with Tailwind dark classes */}
       <div
-        className={`portfolio-shell min-h-screen transition-colors duration-500 
+        className={`portfolio-shell relative min-h-screen overflow-hidden transition-colors duration-500 
         ${darkMode ? "text-white" : "text-neutral-900"} 
         antialiased selection:bg-neutral-800/80 selection:text-white `}
       >
+        <div className="portfolio-liquid-background" aria-hidden="true">
+          <LiquidEther
+            colors={liquidEtherColors}
+            mouseForce={20}
+            cursorSize={100}
+            isViscous
+            viscous={30}
+            iterationsViscous={32}
+            iterationsPoisson={32}
+            resolution={0.45}
+            isBounce={false}
+            autoDemo
+            autoSpeed={0.5}
+            autoIntensity={2.2}
+            takeoverDuration={0.25}
+            autoResumeDelay={3000}
+            autoRampDuration={0.6}
+          />
+        </div>
         
         {/* Pass theme controls to Navbar so it can toggle */}
-        <div className="mx-auto w-full max-w-6xl px-6">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6">
           <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
           <div className="pb-8 lg:pb-12">
              <Element name="about" data-section="about">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AOS from "aos";
-import "aos/dist/aos.css";
 import Modal from "./Modal/Modal";
+import BorderGlow from "./Reactbits/BorderGlow";
 
 type Tech = string;
 
@@ -25,7 +25,7 @@ const EXPERIENCE_DATA: ExperienceItem[] = [
     focus: "Business systems, integrations, dashboards, and internal tools.",
     description:
       "Designed, implemented, and optimized software solutions, integrated various data sources and systems, collaborated with teams to address requirements, ensured compliance with industry standards, and conducted testing for reliability and performance.",
-    techs: ["PHP", "Laravel", "React", "TypeScript", "Tailwind", "jQuery", "MySQL"],
+    techs: ["PHP", "Laravel", "React", "TypeScript", "Tailwind", "jQuery", "MySQL","Automation Workflows"],
     aos: { animation: "fade-left", delay: 200 },
   },
   {
@@ -67,7 +67,7 @@ const Experience: React.FC<ExperienceProps> = ({ darkMode = true }) => {
     <>
       <div className="pb-2">
         <div className="flex items-center">
-          <h2 className="text-center text-gray-300 text-xl font-medium mt-6 lg:hidden">
+          <h2 className={`${darkMode ? "text-gray-300" : "text-gray-700"} text-center text-xl font-medium mt-6 lg:hidden`}>
             EXPERIENCE
           </h2>
         </div>
@@ -131,18 +131,29 @@ function EXPCARD({
   label?: string;
 }) {
   const baseCard =
-    "flex flex-col gap-4 lg:gap-8 shadow-sm backdrop-blur border p-4 rounded-md mt-5 lg:flex-row transition-colors duration-300";
+    "flex flex-col gap-4 lg:gap-8 shadow-sm backdrop-blur border p-4 rounded-md lg:flex-row transition-all duration-300";
   const themeClasses = darkMode
-    ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:bg-neutral-800/70 hover:border-cyan-300/25"
-    : "border-teal-500/15 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-teal-500/35";
+    ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/25"
+    : "border-teal-500/15 bg-white text-gray-800 hover:border-teal-500/35";
+  const glowColors = darkMode ? ['#14b8a6', '#67e8f9', '#f0abfc'] : ['#0f766e', '#0891b2', '#c026d3'];
 
   return (
     <>
-        <div
-            className={`${baseCard} ${themeClasses} items-start`} // add items-start
-            data-aos={aosAnimation}
-            data-aos-delay={aosDelay}
+        <div data-aos={aosAnimation} data-aos-delay={aosDelay}>
+          <BorderGlow
+            className="mt-5"
+            edgeSensitivity={24}
+            glowColor={darkMode ? "186 100 74" : "190 90 42"}
+            backgroundColor="transparent"
+            borderRadius={6}
+            glowRadius={36}
+            glowIntensity={darkMode ? 1.15 : 0.9}
+            coneSpread={22}
+            animated={false}
+            fillOpacity={0}
+            colors={glowColors}
         >
+          <div className={`${baseCard} ${themeClasses} items-start`}>
             {/* LEFT: period */}
             <div className="lg:w-40 shrink-0 self-start">    {/* fixed width + no shrink */}
                 <span className={`${darkMode ? "text-gray-100" : "text-gray-800"} text-sm`}>
@@ -170,15 +181,17 @@ function EXPCARD({
                 ))}
                 </div>
             </div>
-        </div>
+          </div>
+        </BorderGlow>
+      </div>
 
       {href && label && (
         <a
           href={href}
           className={`group inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm backdrop-blur transition-all duration-300 ${
             darkMode
-              ? "border-white/10 bg-neutral-900/60 text-gray-200 hover:bg-neutral-800/70 hover:border-white/20"
-              : "border-teal-500/15 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-teal-500/35"
+              ? "border-white/10 bg-neutral-950 text-gray-200 hover:bg-neutral-900 hover:border-white/20"
+              : "border-teal-500/15 bg-white text-gray-800 hover:bg-white hover:border-teal-500/35"
           }`}
           target={href.startsWith("http") ? "_blank" : undefined}
           rel={href.startsWith("http") ? "noreferrer noopener" : undefined}

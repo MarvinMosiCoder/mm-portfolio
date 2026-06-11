@@ -1,14 +1,14 @@
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { FaEnvelope, FaFacebook, FaFileAlt, FaGithub, FaInstagram, FaLinkedin } from "react-icons/fa";
-
+import BorderGlow from './Reactbits/BorderGlow';
 interface MainViewProps {
   darkMode: boolean;
-  setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  setDarkMode?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
-  const stack = ["Laravel", "React", "TypeScript", "Tailwind", "MySQL", "Supabase", "n8n Automation", "CloudPanel", "cPanel"];
+  const stack = ["PHP/Laravel", "React", "TypeScript", "Tailwind", "MySQL", "Supabase", "Automation Workflows", "CloudPanel", "cPanel"];
 
   return (
     <main
@@ -104,25 +104,39 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
           </div>
         </section>
 
-        <aside
-          className={`rounded-md border p-4 ${
-            darkMode
-              ? "brand-ring border-cyan-300/10 bg-neutral-900/60"
-              : "brand-ring border-teal-500/15 bg-white/80"
-          }`}
+        <BorderGlow
+          className="self-center"
+          edgeSensitivity={24}
+          glowColor={darkMode ? "186 100 74" : "190 90 42"}
+          backgroundColor={darkMode ? "rgb(23 23 23 / 0.62)" : "rgb(255 255 255 / 0.84)"}
+          borderRadius={6}
+          glowRadius={36}
+          glowIntensity={darkMode ? 1.15 : 0.9}
+          coneSpread={22}
+          animated={false}
+          fillOpacity={0}
+          colors={darkMode ? ['#14b8a6', '#67e8f9', '#f0abfc'] : ['#0f766e', '#0891b2', '#c026d3']}
         >
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Available for
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-            Web applications, dashboards, and internal business systems.
-          </h2>
-          <div className={`mt-4 border-t pt-4 ${darkMode ? "border-white/10" : "border-neutral-200"}`}>
-            <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm leading-relaxed`}>
-              I build practical tools for teams that need reliable workflows, clean interfaces, and maintainable code.
+          <aside
+            className={`rounded-md border p-4 ${
+              darkMode
+                ? "border-cyan-300/10 bg-neutral-950"
+                : "border-teal-500/15 bg-white"
+            }`}
+          >
+            <p className="text-xs uppercase tracking-wide text-gray-500">
+              Available for
             </p>
-          </div>
-        </aside>
+            <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+              Web applications, dashboards, and internal business systems.
+            </h2>
+            <div className={`mt-4 border-t pt-4 ${darkMode ? "border-white/10" : "border-neutral-200"}`}>
+              <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} text-sm leading-relaxed`}>
+                I build practical tools for teams that need reliable workflows, clean interfaces, and maintainable code.
+              </p>
+            </div>
+          </aside>
+        </BorderGlow>
       </div>
     </main>
   );
@@ -144,8 +158,8 @@ function CTA({
       href={href}
       className={`group inline-flex items-center justify-center gap-2 rounded-md border px-4 py-3 text-sm font-medium backdrop-blur transition-all duration-300 ${
         darkMode
-          ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-800/70"
-          : "border-teal-500/15 bg-white/70 text-gray-800 hover:border-teal-500/35 hover:bg-white/90"
+          ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-900"
+          : "border-teal-500/15 bg-white text-gray-800 hover:border-teal-500/35 hover:bg-white"
       }`}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer noopener" : undefined}

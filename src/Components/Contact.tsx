@@ -276,10 +276,10 @@ function ContactLink({
             href={href}
             target={href.startsWith("http") ? "_blank" : undefined}
             rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
-            className={`rounded-md border p-3 transition ${
+            className={`brand-glow-card rounded-md border p-3 transition-all duration-300 ${
                 darkMode
-                    ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-800/70"
-                    : "border-teal-500/15 bg-white/80 text-neutral-800 hover:border-teal-500/35 hover:bg-white/95"
+                    ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/30 hover:bg-neutral-900"
+                    : "border-teal-500/15 bg-white text-neutral-800 hover:border-teal-500/35 hover:bg-white"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-semibold">

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import AOS from "aos";
-import "aos/dist/aos.css";
 import Modal from "./Modal/Modal";
+import BorderGlow from "./Reactbits/BorderGlow";
 
 type Tech = string;
 
@@ -28,9 +28,9 @@ const PROJECTS_DATA: ProjectItem[] = [
     impact: "Trading platform with backtesting, live trading features, demo accounts, and charting tools.",
     description:
       "BacktradeLab is a trading platform concept built for testing strategies, reviewing market behavior, and supporting live or demo trading workflows. It includes backtest features, live trading tools, demo account support, and charting utilities inspired by platforms like TradingView.",
-    imageSrc: "/vram-logo.webp",
+    imageSrc: "/img/backtrade-black-logo.png",
     imageAlt: "BacktradeLab trading platform logo",
-    techs: ["React", "TypeScript", "Tailwind", "TradingView Tools", "Automation"],
+    techs: ["PHP/Laravel","React", "TypeScript", "Tailwind", "TradingView Tools", "Vibe Coded using Codex and GPT5.5 Model ", "MySQL"],
     aos: { animation: "fade-left", delay: 200 },
   },
   {
@@ -40,27 +40,7 @@ const PROJECTS_DATA: ProjectItem[] = [
       "A dynamic admin template is a customizable, feature-rich framework for building responsive, professional admin dashboards and interfaces, streamlining development with pre-built components and layouts.",
     imageSrc: "/vram-logo.webp",
     imageAlt: "Vram Admin Template logo",
-    techs: ["PHP", "Laravel", "React", "Inertia", "Tailwind", "MySQL"],
-    aos: { animation: "fade-left", delay: 200 },
-  },
-  {
-    title: "Gashapon Inventory System",
-    impact: "Inventory workflow for capsule stocks, swaps, refills, and token operations.",
-    description:
-      "The gashapon inventory system tracks capsule inventory, manages pullout tokens, oversees token swaps, capsule refills, capsule swaps, and capsule merges, monitors Start of Day (SOD) and End of Day (EOD) activities, facilitates the exchange of tokens for capsules, collects tokens, and ensures that the gashapon machine remains adequately stocked.",
-    imageSrc: "/img/logo.png",
-    imageAlt: "Gashapon system logo",
-    techs: ["PHP", "Laravel", "JQuery", "MySQL"],
-    aos: { animation: "fade-right", delay: 200 },
-  },
-  {
-    title: "Assets Management with Inventory and ERF",
-    impact: "Asset request and inventory process for tracking employee requisitions.",
-    description:
-      "Managing assets involves overseeing their usage, processing requests for assets, ensuring their return, handling replenishment and ordering, maintaining an inventory list, sourcing items, and processing employee requisition forms.",
-    imageSrc: "/asset-logo.webp",
-    imageAlt: "Assets management logo",
-    techs: ["PHP", "Laravel", "JQuery", "MySQL"],
+    techs: ["PHP/Laravel", "React", "Inertia", "Tailwind", "MySQL"],
     aos: { animation: "fade-left", delay: 200 },
   },
 ];
@@ -96,7 +76,7 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
     <>
       <div className="pb-6">
         <div className="flex items-center">
-          <h2 className="text-center text-gray-300 text-xl font-medium mt-6 mb-6 lg:hidden">
+          <h2 className={`${darkMode ? "text-gray-300" : "text-gray-700"} text-center text-xl font-medium mt-6 mb-6 lg:hidden`}>
             PROJECTS
           </h2>
         </div>
@@ -150,17 +130,28 @@ function ProjectCard({
   onTechClick?: (tech: Tech) => void;
 }) {
   const baseCard =
-    "flex flex-col gap-4 mb-5 border p-4 rounded-md lg:flex-row transition-colors duration-300";
+    "flex flex-col gap-4 border p-4 rounded-md lg:flex-row transition-all duration-300";
   const themeClasses = darkMode
-    ? "border-cyan-300/10 bg-neutral-900/60 text-gray-200 hover:bg-neutral-800/70 hover:border-cyan-300/25"
-    : "border-teal-500/15 bg-white/70 text-gray-800 hover:bg-white/90 hover:border-teal-500/35";
+    ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/25"
+    : "border-teal-500/15 bg-white text-gray-800 hover:border-teal-500/35";
+  const glowColors = darkMode ? ['#14b8a6', '#67e8f9', '#f0abfc'] : ['#0f766e', '#0891b2', '#c026d3'];
 
   return (
-    <div
-      className={`${baseCard} ${themeClasses}`}
-      data-aos={item.aos.animation}
-      data-aos-delay={item.aos.delay}
+    <div data-aos={item.aos.animation} data-aos-delay={item.aos.delay}>
+      <BorderGlow
+        className="mb-5"
+        edgeSensitivity={24}
+        glowColor={darkMode ? "186 100 74" : "190 90 42"}
+        backgroundColor="transparent"
+        borderRadius={6}
+        glowRadius={36}
+        glowIntensity={darkMode ? 1.15 : 0.9}
+        coneSpread={22}
+        animated={false}
+        fillOpacity={0}
+        colors={glowColors}
     >
+      <div className={`${baseCard} ${themeClasses}`}>
       {/* LEFT: image */}
       <div className={`grid min-h-[130px] place-items-center rounded-md lg:w-[180px] shrink-0 ${darkMode ? "bg-cyan-300/5" : "bg-teal-500/5"}`}>
         <img
@@ -194,6 +185,8 @@ function ProjectCard({
           ))}
         </div>
       </div>
+      </div>
+    </BorderGlow>
     </div>
   );
 }
