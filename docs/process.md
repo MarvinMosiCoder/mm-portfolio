@@ -4,28 +4,34 @@ This document describes the working process for maintaining the `vram-portfolio`
 
 ## Project Overview
 
-`vram-portfolio` is a React and TypeScript portfolio site for Marvin Mosico. It includes public portfolio pages, a resume page, additional projects, and protected dashboard routes for admin-style content management.
+`vram-portfolio` is a React and TypeScript portfolio site for Marvin Mosico, styled as a small
+desktop-OS ("MarvinMosico.OS"): sections render as windows on a desktop, with a menu bar, a taskbar,
+a boot screen, and a window switcher. It is a fully static, public site — there is no backend,
+database, or authenticated admin area.
 
 ## Tech Stack
 
 - React 18 with TypeScript
 - Create React App / `react-scripts`
-- Tailwind CSS
+- Tailwind CSS, plus a small hand-written OS design-token system (`src/theme/osTheme.ts`)
 - React Router
-- Three.js for the LiquidEther WebGL hero effect
-- Supabase client integration
 - EmailJS and React Toastify for contact-style interactions
-- AOS, GSAP, React Icons, Lucide React, and Styled Components for UI support
+- AOS (scroll reveal), React Icons, Lucide React
+- `html2canvas` (lazy-loaded) for taskbar/window-switcher thumbnail previews
+
+There is no database or backend client in this project. A previous Supabase-backed admin
+dashboard (auth, file storage, resume-data forms) was removed entirely — see
+[Removed: Supabase admin area](#removed-supabase-admin-area).
 
 ## Main Routes
 
-- `/` - main portfolio content
-- `/other-projects` - additional projects page
-- `/resume` - resume page
-- `/admin` - login/security form
-- `/dashboard` - protected dashboard area
-- `/dashboard/upload-file` - upload file screen
-- `/dashboard/resume-data` - resume data management area
+- `/` - main portfolio desktop (about, experience, projects, contact as windows)
+- `/other-projects` - full project archive
+- `/resume` - resume page (print/PDF view)
+
+There are no `/admin` or `/dashboard` routes. If routes for editing content are ever needed
+again, they'll need a backend to be re-introduced first — see the removal notes below before
+resurrecting any of that code from git history.
 
 ## Local Development
 
@@ -59,127 +65,157 @@ Create a production build:
 npm run build
 ```
 
+No environment variables are required to run or build the app. `.env` only contains commented-out
+leftovers from an earlier Firebase experiment that was never wired up — safe to ignore or delete.
+
 ## Content Update Process
 
 1. Update profile and resume details in `src/data/resumeData.ts`.
 2. Update portfolio project entries in `src/data/projectsData.ts`.
-3. Place public assets such as logos, images, and resume files inside `public/`.
+3. Place public assets such as images and resume files inside `public/`.
 4. Check affected pages in the browser, especially `/`, `/resume`, and `/other-projects`.
 5. Run `npm run build` before deployment to confirm the app compiles successfully.
 
-## Design Maintenance Process
+All content is static/hardcoded in `src/data/`. There is no CMS, form, or database to edit
+content through — changes are made directly in these files and shipped with a normal deploy.
 
-The portfolio uses a modern, minimal developer profile style. Keep the design direct, readable, and focused on professional outcomes.
+## Design System: MarvinMosico.OS
 
-Current design direction:
+The site's visual identity is a desktop-OS metaphor, not a generic "developer portfolio" theme.
+Keep new UI consistent with this system rather than introducing one-off styling.
 
-- Opening loader uses a circular monogram `M` with a double-ring SVG mark, animated stroke drawing, and a teal/cyan/soft-pink glow.
-- Public portfolio brand colors are shared through CSS variables and utilities in `src/index.css`.
-- Brand palette:
-  - Light theme uses deeper readable tones: teal `#0f766e`, cyan `#0891b2`, and pink `#c026d3`.
-  - Dark theme uses brighter glow tones: teal `#14b8a6`, cyan `#67e8f9`, and pink `#f0abfc`.
-- Hero section introduces Marvin clearly with resume and contact CTAs.
-- The portfolio shell renders the `LiquidEther` WebGL effect from `src/Components/Reactbits/LiquidEther.tsx` as a fixed full-viewport background behind all public content.
-- LiquidEther colors should stay mapped to the same brand palette as the CSS variables: light teal `#0f766e`, cyan `#0891b2`, pink `#c026d3`; dark teal `#14b8a6`, cyan `#67e8f9`, pink `#f0abfc`.
-- The `View Resume` hero CTA intentionally stays neutral black/white instead of using the brand gradient.
-- Core stack badges highlight PHP/Laravel, React, TypeScript, Tailwind, MySQL, Supabase, Automation Workflows, CloudPanel, and cPanel.
-- Social links stay with the main hero content instead of inside the availability panel.
-- Project and experience cards use short impact/focus lines before longer descriptions.
-- The availability, experience, and featured project cards use the Reactbits `BorderGlow` wrapper for interactive border-only glow; the card body must keep its normal theme background without gradient fill.
-- BacktradeLab is listed as a trading platform project with backtesting, live trading features, demo account support, TradingView-style tools, and the logo asset at `public/img/backtrade-black-logo.png`.
-- Featured project cards currently focus on BacktradeLab and the Vram Admin Template; older employer systems remain in the full project data list.
-- Employer projects in `src/data/projectsData.ts` use generic employer-facing names and blank links until public URLs are available.
-- Experience tech badges include Automation Workflows alongside the Laravel, React, TypeScript, Tailwind, jQuery, and MySQL stack.
-- Contact section includes direct Email, LinkedIn, and GitHub links before the form.
-- Dark and light themes should stay consistent across cards, buttons, and form fields.
+- **Design tokens** live in `src/theme/osTheme.ts` as two plain objects, `DARK_OS_THEME` and
+  `LIGHT_OS_THEME`, accessed via `getOsTheme(darkMode)`. Components read `theme.bg`,
+  `theme.accent`, etc. and pass them into inline `style` props — this project does not use
+  Tailwind's `dark:` variants for OS-themed components.
+- **Dark/light mode** is read from `localStorage.getItem("theme")` independently by each
+  top-level route component (there is no shared `ThemeContext`). When adding a new top-level
+  route, copy the existing read/effect pattern from `Content.tsx` or `AnotherProjects.tsx`
+  rather than inventing a new one.
+- **Typography**: `os-mono` (IBM Plex Mono) for labels, chips, filenames, and anything meant to
+  read as system/terminal text; `os-sans` (IBM Plex Sans) for prose and headings. Both utility
+  classes are defined in `src/index.css`.
+- **Shape language is boxy, not rounded.** Windows, buttons, chips, and cards use plain 1px
+  borders and square corners — no `rounded-md`/`rounded-xl` on OS chrome. The only rounded
+  elements in the whole system are the small `rounded-full` status dots (taskbar "available"
+  indicator). Keep new components square to match.
+- **Accent color** is a single amber/gold (`theme.accent`) used sparingly for active states,
+  focus indicators, and the one "available for work" dot — not for large fills or gradients.
+- **Chip list**: the tech-stack chips on the About window (`src/Components/MainView.tsx`,
+  `STACK` array) currently read Laravel, React, TypeScript, Tailwind, MySQL, n8n Automation,
+  CloudPanel, cPanel. Keep this list honest — it was trimmed to remove "Supabase" when the
+  database-backed admin area was removed; don't add a technology here unless it's actually
+  used somewhere in the live app.
+- **Window chrome** (`src/Components/os/WindowChrome.tsx`) is the reusable "window" used for
+  each About/Experience/Projects/Contact section on `/`. New sections on the desktop should be
+  wrapped in it rather than styled ad hoc.
+- **Reusable OS chrome** lives in `src/Components/os/`: `MenuBar`, `Taskbar`, `DesktopRail`,
+  `TaskSwitcher`, `MobileNavPanel`, `MinimizeGhost`, `BootScreen`, `WindowChrome`, and shared
+  icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`).
+  Section state (open/closed/minimized/active) is owned entirely by `Content.tsx` and passed
+  down as props — chrome components don't read shared state on their own.
 
 When updating the UI:
 
-1. Prefer the shared brand utilities `brand-gradient-text`, `brand-gradient-bg`, `brand-ring`, `brand-link-hover`, `brand-focus`, and `portfolio-shell` instead of repeating hardcoded gradient classes.
-2. Keep light-theme brand text readable by using the CSS variables rather than fixed bright cyan/pink Tailwind classes on white backgrounds.
-3. Prefer left-aligned readable text instead of justified paragraphs.
-4. Keep section spacing compact and consistent with Tailwind spacing utilities such as `py-8`, `py-10`, and `py-12`.
-5. Avoid active navigation styles that shift layout; use color, weight, or underline states instead.
-6. Use rounded `md` controls and cards for a clean application-like portfolio style.
-7. Use project screenshots or meaningful product visuals when available instead of generic logos only.
-8. Keep CTA labels clear and action-focused, such as `View Resume`, `Contact Me`, and `Other projects`.
-9. Leave project links blank when a project is private or not publicly available; replace them when a real public URL is available.
-10. Keep AOS CSS imported from shared/top-level pages such as `Content.tsx`, `Resume.tsx`, or admin page entries instead of duplicating it in every small card component.
+1. Prefer left-aligned readable text instead of justified paragraphs.
+2. Keep section spacing compact and consistent with Tailwind spacing utilities such as `py-8`,
+   `py-10`, and `py-12`.
+3. Avoid active navigation styles that shift layout; use color, weight, border, or underline
+   states instead (see `theme.accent` usage in `MenuBar.tsx`).
+4. Use square, bordered controls and cards — not rounded — to stay consistent with the OS chrome.
+5. Use project screenshots or meaningful product visuals when available instead of generic
+   logos only.
+6. Keep CTA labels clear and action-focused, such as `View Resume`, `Contact Me`, and
+   `Other projects`.
+7. Replace placeholder project links (anything containing `your-` in `src/data/projectsData.ts`)
+   when a real project URL is available — `AnotherProjects.tsx` renders those as "pending"
+   instead of a link until then.
 
-## Brand Styling Notes
+## Favicon & App Icons
 
-The main portfolio shell is styled in `src/Components/Content.tsx` with the `portfolio-shell` utility. It adds subtle teal and pink radial glows in both themes while preserving a white base in light mode and a dark ink base in dark mode.
+The favicon and app icons (`public/favicon.svg`, `public/favicon.ico`, `public/favicon.png`,
+`public/logo192.png`, `public/logo512.png`, `public/apple-touch-icon.png`) are all rendered from
+the exact same path data as `LogoMark` in `src/Components/os/OsIcons.tsx`, so the icon in a
+browser tab matches the glyph used inside the app. `favicon.svg` is hand-written and is the
+primary `<link rel="icon">`; the raster set was generated with a one-off Python + Pillow script
+(supersampled and downsampled for anti-aliasing) and isn't checked into the repo.
 
-Reusable brand utilities live in `src/index.css`:
-
-- `brand-gradient-text` - adaptive teal/cyan/pink gradient text.
-- `brand-gradient-bg` - adaptive teal/cyan/pink gradient background.
-- `brand-ring` - subtle branded border and glow for framed content.
-- `brand-link-hover` - cyan hover color for text links.
-- `brand-focus` - teal focus border for form controls.
-- `portfolio-shell` - page background treatment.
-- `brand-glow-card` - non-interactive fallback theme-aware border glow and hover shadow for simple cards.
-- `portfolio-liquid-background` - fixed full-viewport LiquidEther background layer.
-- `liquid-ether-container` - full-size wrapper for the LiquidEther canvas with disabled touch panning.
-
-When adding new public-facing UI, prefer these utilities so the site keeps one visual system. If a component needs fixed icon or border colors, choose darker teal variants for light mode and brighter cyan variants for dark mode.
-
-The loading gate is implemented in `src/Components/LoadingGate.tsx`. Keep its monogram centered inside the circular SVG viewbox so the opening mark stays aligned across desktop and mobile.
-
-## Main View And LiquidEther
-
-The public portfolio shell lives in `src/Components/Content.tsx`. It imports `LiquidEther` from `src/Components/Reactbits/LiquidEther.tsx` and renders the effect inside `portfolio-liquid-background`, a fixed full-viewport layer behind the navbar, hero, experience, projects, and contact sections.
-
-`LiquidEther.tsx` is maintained as a React-wrapped Three.js/WebGL effect. It currently uses `// @ts-nocheck` because the component is a JavaScript-style shader implementation inside a `.tsx` file and does not declare full class, ref, or Three.js types yet. If the effect is refactored later, add explicit prop/ref/class types and install or provide Three.js declarations before removing that directive.
-
-`MainViewProps.setDarkMode` is optional because `MainView` receives it from `Content.tsx` for compatibility but does not currently use it inside the component.
-
-## Border Glow Cards
-
-The interactive card glow lives in `src/Components/Reactbits/BorderGlow.tsx` with styles in `src/css/BorderGlow.css`. The CSS import path from the component should stay `../../css/BorderGlow.css`.
-
-Use `BorderGlow` around the real card body for the hero availability card in `MainView.tsx`, the experience cards in `Experience.tsx`, and the featured project cards in `Projects.tsx`. Keep `fillOpacity={0}` and keep the actual card background on the inner card element so the effect appears on the border only. These card bodies should use opaque backgrounds such as `bg-white` or `bg-neutral-950` so the LiquidEther background does not animate through the card body.
-
-Match BorderGlow colors to the site palette: light mode uses teal/cyan/pink `#0f766e`, `#0891b2`, `#c026d3` with a brighter cyan-leaning glow color such as `190 90 42`; dark mode uses `#14b8a6`, `#67e8f9`, `#f0abfc`. Prefer stronger outer border glow through `glowRadius` and `glowIntensity`, not through translucent card bodies or gradient fills.
+If `LogoMark`'s path or the accent color ever changes, regenerate the raster icon set to match —
+don't let the favicon drift from the in-app mark. `public/manifest.json` and the `<link>` tags
+in `public/index.html` reference these files directly.
 
 ## Resume Download Process
 
-The resume download button on `/resume` exports the resume content shown in the browser. It uses the browser print dialog through `window.print()`.
+The resume download button on `/resume` exports the resume content shown in the browser. It uses
+the browser print dialog through `window.print()`.
 
 When checking the PDF download flow:
 
 1. Open `/resume` in the browser.
 2. Click the Download button.
 3. Choose `Save as PDF` in the browser print dialog.
-4. Confirm the saved PDF contains the resume content without the floating buttons.
+4. Confirm the saved PDF contains the resume content without the floating toolbar.
 5. Update `src/data/resumeData.ts` when the resume content needs to change.
 
-The PDF layout is controlled by print styles in `src/index.css`. The resume component uses print-specific class hooks in `src/Components/Resume.tsx` so the saved PDF keeps the A4 page size, two-column resume layout, spacing, and colors close to the browser design.
+The PDF layout is controlled by print styles in `src/index.css`. The resume component uses
+print-specific class hooks in `src/Components/Resume.tsx` so the saved PDF keeps the A4 page
+size, two-column resume layout, spacing, and colors close to the browser design.
 
-The resume page theme toggle changes the surrounding browser background and control styling. The resume sheet itself stays white so the PDF remains readable and professional.
+The toolbar above the resume (back link, theme toggle, download button) is OS-themed and follows
+`theme.bg`/`theme.accent` like the rest of the site. The resume sheet itself stays white/paper-styled
+regardless of theme, by design, so the PDF stays readable and professional — don't theme the sheet
+itself to dark mode.
 
 ## Code Organization
 
-- `src/App.tsx` defines the application routes and page titles.
-- `src/Components/` contains the public portfolio UI sections.
-- `src/pages/` contains dashboard and admin-related pages.
-- `src/data/` stores portfolio and resume data used by the UI.
-- `src/context/` contains shared React context such as authentication state.
-- `src/Middleware/` contains route protection and security form logic.
-- `src/lib/` contains external service clients such as Supabase.
-- `public/` contains static assets served by the app.
+- `src/App.tsx` defines the application routes and page titles (`/`, `/other-projects`, `/resume`).
+- `src/Components/` contains the public portfolio UI sections (About, Experience, Projects,
+  Contact, Resume, AnotherProjects, MainView).
+- `src/Components/os/` contains the reusable desktop-OS chrome (see Design System above).
+- `src/theme/` contains the OS color-token system (`osTheme.ts`).
+- `src/Hooks/` contains shared hooks: `useActiveSection` (scroll-spy for the desktop sections),
+  `useWindowThumbnails` (lazy `html2canvas` capture + cache for taskbar/switcher previews), and
+  `LanguageInfo`.
+- `src/data/` stores portfolio, project, and resume data used by the UI (all static).
+- `public/` contains static assets served by the app, including the generated favicon/app-icon
+  set (see Favicon & App Icons above).
+
+There is no `src/pages/`, `src/context/`, `src/Middleware/`, or `src/lib/` anymore — those held
+the Supabase-backed admin dashboard and were deleted along with it.
+
+## Removed: Supabase Admin Area
+
+The project previously had a Supabase-backed admin area: `/admin` (login), `/dashboard` (an
+authenticated shell with an overview, a resume-file upload screen backed by Supabase Storage,
+and forms that inserted rows into a `profiles` table via Supabase Postgres). None of that backend
+exists anymore, so the whole layer was deleted rather than left as dead code pointing at nothing:
+
+- `lib/supabaseClient.ts`, `context/AuthContext.tsx`, `Middleware/ProtectedRoute.tsx`,
+  `Middleware/SecurityForm.tsx`
+- `pages/Dashboard.tsx`, `pages/OverviewPage.tsx`, `pages/UploadFile.tsx`,
+  `pages/AddResumeData.tsx`, `pages/ResumeDataForm/*`
+- `types/db.ts`
+- the `@supabase/supabase-js` dependency and the `REACT_APP_SUPABASE_*` values in `.env`
+
+The public site never actually depended on any of this — `/resume` has always read from the
+static `resumeDataMap` in `src/data/resumeData.ts`, not from the database. If content management
+is needed again in the future, it needs a real backend (Supabase project or otherwise)
+provisioned first; don't restore the old admin code as-is, since it assumes tables and storage
+buckets that no longer exist.
 
 ## Deployment Checklist
 
-- Confirm environment variables are configured correctly.
 - Run `npm run build`.
 - Review the generated `build/` output.
 - Deploy the build output to the selected hosting provider.
-- Verify the live site routes after deployment.
+- Verify the live site routes after deployment (`/`, `/other-projects`, `/resume`).
+
+No environment variables need to be configured — the app has no backend to point at.
 
 ## Maintenance Notes
 
 - Keep portfolio data current with recent projects and work experience.
-- Avoid committing private credentials from `.env`.
-- Test protected dashboard routes after changes to authentication or Supabase logic.
+- Keep the `STACK` chip list in `MainView.tsx` honest — only list technologies actually in use.
 - Keep public resume files and displayed resume data aligned.
+- If `LogoMark` changes, regenerate the favicon/app-icon set so the browser tab icon stays in
+  sync with the in-app glyph.

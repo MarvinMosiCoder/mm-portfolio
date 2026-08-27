@@ -1,192 +1,279 @@
-import React, { useEffect, useState } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import AOS from "aos";
+import { FiArrowRight } from "react-icons/fi";
 import Modal from "./Modal/Modal";
-import BorderGlow from "./Reactbits/BorderGlow";
+import { projectsData, Project } from "../data/projectsData";
+import { getOsTheme, OsTheme } from "../theme/osTheme";
 
-type Tech = string;
+const getClient = (madeAt: string) => madeAt.split("(")[0].trim();
+const isPlaceholderLink = (link: string) => !link || link.includes("your-");
 
-type AOSAnim = "fade-left" | "fade-right";
-
-interface ProjectItem {
-  title: string;
-  impact: string;
-  description: string;
-  imageSrc: string;
-  imageAlt: string;
-  techs: Tech[];
-  aos: {
-    animation: AOSAnim;
-    delay: number;
-  };
-}
-
-const PROJECTS_DATA: ProjectItem[] = [
-  {
-    title: "BacktradeLab",
-    impact: "Trading platform with backtesting, live trading features, demo accounts, and charting tools.",
-    description:
-      "BacktradeLab is a trading platform concept built for testing strategies, reviewing market behavior, and supporting live or demo trading workflows. It includes backtest features, live trading tools, demo account support, and charting utilities inspired by platforms like TradingView.",
-    imageSrc: "/img/backtrade-black-logo.png",
-    imageAlt: "BacktradeLab trading platform logo",
-    techs: ["PHP/Laravel","React", "TypeScript", "Tailwind", "TradingView Tools", "Vibe Coded using Codex and GPT5.5 Model ", "MySQL"],
-    aos: { animation: "fade-left", delay: 200 },
-  },
-  {
-    title: "Dynamic Vram Admin Template",
-    impact: "Reusable dashboard foundation for business applications.",
-    description:
-      "A dynamic admin template is a customizable, feature-rich framework for building responsive, professional admin dashboards and interfaces, streamlining development with pre-built components and layouts.",
-    imageSrc: "/vram-logo.webp",
-    imageAlt: "Vram Admin Template logo",
-    techs: ["PHP/Laravel", "React", "Inertia", "Tailwind", "MySQL"],
-    aos: { animation: "fade-left", delay: 200 },
-  },
-];
-
-type ProjectsProps = {
-  darkMode?: boolean;
-};
+type ProjectsProps = { darkMode?: boolean };
 
 const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
+  const theme = getOsTheme(darkMode);
+  const [filter, setFilter] = useState<string>("all");
+  const [selectedId, setSelectedId] = useState<string>(projectsData[0].id);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalData, setModalData] = useState<Tech>("");
+  const [modalData, setModalData] = useState("");
 
-  const primary =
-    "brand-gradient-text";
-  const primaryHover =
-    "brand-link-hover";
-  useEffect(() => {
-    AOS.init({
-      duration: 1200,
-      offset: 100,
-      once: false,
-    });
-  }, []);
+  const years = useMemo(
+    () => Array.from(new Set(projectsData.map((p) => p.year))).sort((a, b) => Number(b) - Number(a)),
+    []
+  );
+  const clients = useMemo(() => Array.from(new Set(projectsData.map((p) => getClient(p.made_at)))), []);
 
-  const handleOpenModal = (tech: Tech) => {
+  const countFor = (value: string) =>
+    projectsData.filter((p) => p.year === value || getClient(p.made_at) === value).length;
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return projectsData;
+    return projectsData.filter((p) => p.year === filter || getClient(p.made_at) === filter);
+  }, [filter]);
+
+  const selected = filtered.find((p) => p.id === selectedId) ?? filtered[0];
+
+  const openTechModal = (tech: string, e: React.SyntheticEvent) => {
+    e.stopPropagation();
     setModalData(tech);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => setIsModalOpen(false);
+  const FilterChip = ({ value, label, count }: { value: string; label: string; count: number }) => {
+    const isActive = filter === value;
+    return (
+      <button
+        type="button"
+        onClick={() => setFilter(value)}
+        className="os-mono flex shrink-0 items-center justify-between gap-2 px-3 py-1.5 text-xs transition-colors md:w-full"
+        style={{
+          background: isActive ? theme.accentSoft : "transparent",
+          color: isActive ? theme.text : theme.textMuted,
+        }}
+      >
+        <span className="truncate text-left">{label}</span>
+        <span className="shrink-0" style={{ color: theme.textDim }}>
+          {count}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <>
-      <div className="pb-6">
-        <div className="flex items-center">
-          <h2 className={`${darkMode ? "text-gray-300" : "text-gray-700"} text-center text-xl font-medium mt-6 mb-6 lg:hidden`}>
-            PROJECTS
-          </h2>
+      <div className="flex items-center justify-between mb-4">
+        <span className="os-mono text-xs" style={{ color: theme.textDim }}>
+          ~/projects.dir
+        </span>
+        <span className="os-mono text-xs" style={{ color: theme.textDim }}>
+          {filtered.length} items
+        </span>
+      </div>
+
+      {/* mobile filter strip */}
+      <div className="md:hidden flex gap-1.5 overflow-x-auto pb-3 -mx-1 px-1">
+        <FilterChip value="all" label="All" count={projectsData.length} />
+        {years.map((y) => (
+          <FilterChip key={y} value={y} label={y} count={countFor(y)} />
+        ))}
+        {clients.map((c) => (
+          <FilterChip key={c} value={c} label={c} count={countFor(c)} />
+        ))}
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-5">
+        {/* sidebar */}
+        <div className="hidden md:block w-44 shrink-0" style={{ borderRight: `1px solid ${theme.border}` }}>
+          <div className="pr-4">
+            <div className="os-mono text-[10px] tracking-wide mb-1.5" style={{ color: theme.accent }}>
+              VIEW
+            </div>
+            <FilterChip value="all" label="All Projects" count={projectsData.length} />
+            {years.map((y) => (
+              <FilterChip key={y} value={y} label={y} count={countFor(y)} />
+            ))}
+            <div className="h-px my-3" style={{ background: theme.border }} />
+            <div className="os-mono text-[10px] tracking-wide mb-1.5" style={{ color: theme.accent }}>
+              CLIENTS
+            </div>
+            {clients.map((c) => (
+              <FilterChip key={c} value={c} label={c} count={countFor(c)} />
+            ))}
+          </div>
         </div>
 
-        {PROJECTS_DATA.map((proj, idx) => (
-          <ProjectCard
-            key={idx}
-            item={proj}
-            darkMode={darkMode}
-            onTechClick={handleOpenModal}
-            primary={primary}
-          />
-        ))}
+        {/* list */}
+        <div className="flex-1 min-w-0">
+          <div
+            className="hidden md:grid os-mono text-[10px] uppercase tracking-wide pb-2 mb-1"
+            style={{ gridTemplateColumns: "1.3fr 56px 1fr 1.5fr", color: theme.textDim, borderBottom: `1px solid ${theme.border}` }}
+          >
+            <span>Name</span>
+            <span>Year</span>
+            <span>Made At</span>
+            <span>Stack</span>
+          </div>
 
-        {/* CTA row */}
-        <div className="flex flex-col gap-4 lg:pb-8 lg:flex-row">
-          <Link to="other-projects" className="cursor-pointer group">
-            <h2 className={`flex gap-1 ${darkMode ? "text-gray-300" : "text-gray-600"} text-lg items-center`}>
-              <span className={`font-bold ${primaryHover} transition-colors`}>
-                Other projects
-              </span>
-              <FaArrowRight
-                className={`${darkMode ? "text-gray-300" : "text-gray-600"} ${primaryHover} mt-[2px] transition-colors`}
-                size={15}
+          <div>
+            {filtered.map((project) => (
+              <ProjectRow
+                key={project.id}
+                project={project}
+                theme={theme}
+                isSelected={project.id === selected?.id}
+                onSelect={() => setSelectedId(project.id)}
+                onTechClick={openTechModal}
               />
-            </h2>
+            ))}
+          </div>
+
+          {selected && (
+            <div
+              className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4"
+              style={{ borderTop: `1px solid ${theme.border}` }}
+            >
+              <div>
+                <div className="os-sans text-lg font-bold" style={{ color: theme.text }}>
+                  {selected.project_name}
+                </div>
+                <div className="os-mono text-xs mt-1" style={{ color: theme.textDim }}>
+                  {selected.made_at} · {selected.year}
+                </div>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {selected.build_with.map((tech) => (
+                    <button
+                      key={tech}
+                      type="button"
+                      onClick={(e) => openTechModal(tech, e)}
+                      className="os-mono text-[10px] px-2 py-1"
+                      style={{ background: theme.chipBg, border: `1px solid ${theme.chipBorder}`, color: theme.chipText }}
+                    >
+                      {tech}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {isPlaceholderLink(selected.link) ? (
+                <span
+                  className="os-mono text-xs font-semibold px-4 py-2.5 shrink-0 opacity-50 cursor-not-allowed"
+                  style={{ border: `1px solid ${theme.borderStrong}`, color: theme.textDim }}
+                  title="Link coming soon"
+                >
+                  LINK PENDING
+                </span>
+              ) : (
+                <a
+                  href={selected.link}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="os-mono text-xs font-semibold px-4 py-2.5 shrink-0 transition-colors"
+                  style={{ border: `1px solid ${theme.accent}`, color: theme.accent }}
+                >
+                  OPEN PROJECT →
+                </a>
+              )}
+            </div>
+          )}
+
+          <Link
+            to="/other-projects"
+            className="mt-4 inline-flex items-center gap-1.5 os-mono text-xs transition-colors"
+            style={{ color: theme.textMuted }}
+          >
+            <span>→ other-projects/</span>
+            <FiArrowRight size={12} />
           </Link>
         </div>
       </div>
 
-      {/* Modal */}
-      <Modal
-        show={isModalOpen}
-        onClose={handleCloseModal}
-        title="Technology Details"
-        modalData={modalData}
-      />
+      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} title="Technology Details" modalData={modalData} />
     </>
   );
 };
 
-function ProjectCard({
-  item,
-  darkMode,
+function ProjectRow({
+  project,
+  theme,
+  isSelected,
+  onSelect,
   onTechClick,
-  primary,
 }: {
-  item: ProjectItem;
-  darkMode: boolean;
-  primary: string;
-  onTechClick?: (tech: Tech) => void;
+  project: Project;
+  theme: OsTheme;
+  isSelected: boolean;
+  onSelect: () => void;
+  onTechClick: (tech: string, e: React.SyntheticEvent) => void;
 }) {
-  const baseCard =
-    "flex flex-col gap-4 border p-4 rounded-md lg:flex-row transition-all duration-300";
-  const themeClasses = darkMode
-    ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/25"
-    : "border-teal-500/15 bg-white text-gray-800 hover:border-teal-500/35";
-  const glowColors = darkMode ? ['#14b8a6', '#67e8f9', '#f0abfc'] : ['#0f766e', '#0891b2', '#c026d3'];
+  const rowStyle: React.CSSProperties = {
+    background: isSelected ? theme.accentSoft : "transparent",
+    borderLeft: `3px solid ${isSelected ? theme.accent : "transparent"}`,
+    borderBottom: `1px solid ${theme.border}`,
+  };
+
+  const stackText = project.build_with.join(" · ");
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect();
+    }
+  };
 
   return (
-    <div data-aos={item.aos.animation} data-aos-delay={item.aos.delay}>
-      <BorderGlow
-        className="mb-5"
-        edgeSensitivity={24}
-        glowColor={darkMode ? "186 100 74" : "190 90 42"}
-        backgroundColor="transparent"
-        borderRadius={6}
-        glowRadius={36}
-        glowIntensity={darkMode ? 1.15 : 0.9}
-        coneSpread={22}
-        animated={false}
-        fillOpacity={0}
-        colors={glowColors}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      className="w-full text-left cursor-pointer"
+      style={rowStyle}
     >
-      <div className={`${baseCard} ${themeClasses}`}>
-      {/* LEFT: image */}
-      <div className={`grid min-h-[130px] place-items-center rounded-md lg:w-[180px] shrink-0 ${darkMode ? "bg-cyan-300/5" : "bg-teal-500/5"}`}>
-        <img
-          src={item.imageSrc}
-          alt={item.imageAlt}
-          className="max-h-[110px] w-full object-contain opacity-70"
-          loading="lazy"
-        />
+      {/* desktop */}
+      <div
+        className="hidden md:grid items-center py-2.5 pl-3 pr-2 gap-3"
+        style={{ gridTemplateColumns: "1.3fr 56px 1fr 1.5fr" }}
+      >
+        <span className="os-mono text-sm truncate" style={{ color: theme.text }}>
+          {project.project_name.toLowerCase().replace(/\s+/g, "-")}.proj
+        </span>
+        <span className="os-mono text-xs" style={{ color: theme.textMuted }}>
+          {project.year}
+        </span>
+        <span className="os-sans text-xs truncate" style={{ color: theme.textMuted }}>
+          {project.made_at}
+        </span>
+        <span className="os-mono text-[11px] truncate" style={{ color: theme.chipText }}>
+          {stackText}
+        </span>
       </div>
 
-      {/* RIGHT: content */}
-      <div className="flex-1">
-        <h2 className="text-lg font-semibold">{item.title}</h2>
-        <p className={`${darkMode ? "text-cyan-300" : "text-teal-700"} mt-1 text-sm font-medium`}>
-          {item.impact}
-        </p>
-        <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} mt-2 text-sm leading-relaxed tracking-normal`}>{item.description}</p>
-
-        <div className="flex flex-wrap gap-2">
-          {item.techs.map((tech) => (
-            <div key={tech}>
-              <button
-                type="button"
-                className={`mt-2 px-2 py-1 border ${darkMode ? 'border-cyan-300/35 bg-cyan-300/5' : 'border-teal-500/20 bg-white/70 hover:bg-teal-500/5 hover:border-teal-500/40'} ${primary} rounded-md transition-colors duration-300`}
-                onClick={onTechClick ? () => onTechClick(tech) : undefined}
-                aria-label={`Show details for ${tech}`}
-              >
-                {tech}
-              </button>
-            </div>
+      {/* mobile */}
+      <div className="md:hidden flex flex-col gap-1 py-3 px-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="os-mono text-sm truncate" style={{ color: theme.text }}>
+            {project.project_name.toLowerCase().replace(/\s+/g, "-")}.proj
+          </span>
+          <span className="os-mono text-xs shrink-0" style={{ color: theme.textMuted }}>
+            {project.year}
+          </span>
+        </div>
+        <span className="os-sans text-xs" style={{ color: theme.textDim }}>
+          {project.made_at}
+        </span>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {project.build_with.map((tech) => (
+            <button
+              key={tech}
+              type="button"
+              onClick={(e) => onTechClick(tech, e)}
+              className="os-mono text-[10px] px-2 py-0.5"
+              style={{ background: theme.chipBg, border: `1px solid ${theme.chipBorder}`, color: theme.chipText }}
+            >
+              {tech}
+            </button>
           ))}
         </div>
       </div>
-      </div>
-    </BorderGlow>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { FaArrowLeft, FaFileDownload, FaMoon, FaSun } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { getOsTheme } from "../theme/osTheme";
 
 export type ExperienceItem = {
   company: string;
@@ -75,8 +76,6 @@ function normalizeUrl(url?: string) {
 }
 
 export default function Resume({ data }: ResumeProps) {
-  const primary =
-    "brand-gradient-text";
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
@@ -101,6 +100,7 @@ export default function Resume({ data }: ResumeProps) {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+  const theme = getOsTheme(darkMode);
   const nameParts = data.name.trim().split(" ");
   const firstName = nameParts[0] ?? "";
   const lastName = nameParts.slice(1).join(" ");
@@ -109,21 +109,62 @@ export default function Resume({ data }: ResumeProps) {
   };
 
   return (
-    <div className={`resume-print-page min-h-screen py-6 px-3 transition-colors duration-300 print:bg-white print:p-0 ${darkMode ? "bg-neutral-950" : "bg-[#ececec]"}`}>
+    <div
+      className="resume-print-page min-h-screen pb-10 transition-colors duration-300 print:bg-white print:p-0"
+      style={{
+        backgroundColor: theme.bg,
+        backgroundImage: `linear-gradient(${theme.grid} 1px, transparent 1px), linear-gradient(90deg, ${theme.grid} 1px, transparent 1px)`,
+        backgroundSize: "32px 32px",
+      }}
+    >
+      <div
+        className="print:hidden os-mono sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 sm:px-6"
+        style={{ background: theme.menubar, borderBottom: `1px solid ${theme.border}` }}
+      >
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-xs transition-colors"
+          style={{ color: theme.textMuted }}
+        >
+          <FaArrowLeft size={11} />
+          <span>desktop</span>
+        </Link>
+
+        <span className="hidden sm:inline text-xs" style={{ color: theme.textDim }}>
+          resume.pdf — print preview
+        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDarkMode((v) => !v)}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex h-7 w-7 items-center justify-center border"
+            style={{ borderColor: theme.border, color: theme.textMuted }}
+          >
+            {darkMode ? <FaSun size={12} /> : <FaMoon size={12} />}
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            aria-label="Download resume as PDF"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold"
+            style={{ background: theme.accent, color: theme.panel }}
+          >
+            <FaFileDownload size={11} />
+            <span className="hidden sm:inline">Download</span>
+          </button>
+        </div>
+      </div>
+
       <div
         className="
           resume-print-sheet
-          mx-auto bg-white shadow-sm print:shadow-none
+          mx-auto mt-6 bg-white shadow-sm print:shadow-none print:mt-0
           w-full max-w-[794px]
           min-h-[1123px]
         "
       >
-        <h2 className="flex gap-1 text-teal-200 text-base md:text-lg fixed left-1 top-4 md:static z-10 print:hidden">
-          <Link to="/" className={`cursor-pointer flex gap-1 ${primary} fixed top-4 left-4 px-3 py-2 rounded-full shadow-lg text-xs md:text-sm hover:opacity-90 active:scale-[0.99] print:hidden border border-cyan-300/30 bg-white/90`}>   
-            <FaArrowLeft className={`text-cyan-300 mt-[2px] md:mt-[4px] transition duration-300`} size={12} />
-            <span className="font-bold">Back</span>
-          </Link>
-        </h2>
         <div className="resume-print-content px-8 py-8 md:px-9 md:py-8 print:px-[28px] print:py-[26px]">
           {/* HEADER */}
           <div className="flex items-start justify-between gap-5">
@@ -363,35 +404,6 @@ export default function Resume({ data }: ResumeProps) {
           </div>
         </div>
       </div>
-      {/* Print / Download helper (mobile-friendly) */}
-      <button
-        type="button"
-        onClick={handleDownloadPdf}
-        className={`fixed bottom-4 right-4 px-3 md:px-4 py-2 rounded-full shadow-lg bg-slate-900 text-white text-xs md:text-sm hover:opacity-90 active:scale-[0.99] print:hidden`}
-        aria-label="Download resume as PDF"
-        title="Download resume as PDF"
-      >
-        <span className={`flex items-center gap-2 ${primary}`}>
-          <FaFileDownload className={`text-cyan-300 mt-[2px] transition duration-300`} size={14} />
-          <span className="hidden sm:inline">Download</span>
-        </span>
-      </button>
-
-      {/* Theme toggle (optional, mobile reachable) */}
-      <button
-        type="button"
-        onClick={() => setDarkMode((v) => !v)}
-        className={`fixed bottom-4 left-4 inline-flex items-center gap-2 px-3 py-2 rounded-full shadow-lg text-xs md:text-sm hover:opacity-90 active:scale-[0.99] print:hidden border transition-colors ${
-          darkMode
-            ? "bg-white text-slate-900 border-white/80"
-            : "bg-slate-900 text-white border-slate-800"
-        }`}
-        aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-      >
-        {darkMode ? <FaSun size={13} /> : <FaMoon size={13} />}
-        <span>{darkMode ? "Light mode" : "Dark mode"}</span>
-      </button>
     </div>
   );
 }

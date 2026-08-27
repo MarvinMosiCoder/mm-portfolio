@@ -1,206 +1,157 @@
-import React, { useEffect, useState } from "react";
-import AOS from "aos";
+import React, { useState } from "react";
 import Modal from "./Modal/Modal";
-import BorderGlow from "./Reactbits/BorderGlow";
+import { getOsTheme, OsTheme } from "../theme/osTheme";
 
 type Tech = string;
 
 interface ExperienceItem {
   period: string;
-  title: string;
+  company: string;
+  role: string;
   focus: string;
   description: string;
   techs: Tech[];
-  aos: {
-    animation: "fade-left" | "fade-right";
-    delay: number;
-  };
-  
 }
 
 const EXPERIENCE_DATA: ExperienceItem[] = [
   {
-    period: "2022 - PRESENT",
-    title: "Application Software Developer | Digits Trading Corp",
-    focus: "Business systems, integrations, dashboards, and internal tools.",
+    period: "2022 — PRESENT",
+    company: "Digits Trading Corp",
+    role: "Application Software Developer",
+    focus: "business systems, integrations, dashboards, internal tools",
     description:
       "Designed, implemented, and optimized software solutions, integrated various data sources and systems, collaborated with teams to address requirements, ensured compliance with industry standards, and conducted testing for reliability and performance.",
-    techs: ["PHP", "Laravel", "React", "TypeScript", "Tailwind", "jQuery", "MySQL","Automation Workflows"],
-    aos: { animation: "fade-left", delay: 200 },
+    techs: ["PHP", "Laravel", "React", "TypeScript", "Tailwind", "jQuery", "MySQL"],
   },
   {
-    period: "2021 - 2022",
-    title: "Application Software Developer | Rex Group of Companies",
-    focus: "PHP applications, responsive interfaces, and operational workflows.",
+    period: "2021 — 2022",
+    company: "Rex Group of Companies",
+    role: "Application Software Developer",
+    focus: "PHP applications, responsive interfaces, operational workflows",
     description:
-      "Designed, implemented, and optimized software solutions, integrated various data sources and systems, collaborated with teams to address requirements, ensured compliance with industry standards, and conducted testing for reliability and performance.",
+      "Developed dynamic web applications using PHP, JavaScript, and jQuery. Implemented responsive, user-friendly UI components. Collaborated with designers and developers to deliver functional, visually appealing applications.",
     techs: ["PHP", "CodeIgniter", "jQuery", "MySQL"],
-    aos: { animation: "fade-right", delay: 400 },
   },
 ];
 
-type ExperienceProps = {
-  darkMode?: boolean;
-};
+const EDUCATION = [
+  { degree: "BSIT", school: "City of Malabon University", time: "2017 – 2020" },
+  { degree: "Computer Science", school: "Access Computer College", time: "2016 – 2017" },
+];
+
+type ExperienceProps = { darkMode?: boolean };
 
 const Experience: React.FC<ExperienceProps> = ({ darkMode = true }) => {
-  const primary = 'brand-gradient-text';
+  const theme = getOsTheme(darkMode);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState<Tech>("");
 
-  useEffect(() => {
-    AOS.init({
-      duration: 1200,
-      offset: 100,
-      once: false,
-    });
-  }, []);
-
-  const handleOpenModal = (data: Tech) => {
-    setModalData(data);
+  const handleOpenModal = (tech: Tech) => {
+    setModalData(tech);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => setIsModalOpen(false);
+  let line = 0;
+  const nextLine = () => {
+    line += 1;
+    return String(line).padStart(2, "0");
+  };
 
   return (
     <>
-      <div className="pb-2">
-        <div className="flex items-center">
-          <h2 className={`${darkMode ? "text-gray-300" : "text-gray-700"} text-center text-xl font-medium mt-6 lg:hidden`}>
-            EXPERIENCE
-          </h2>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="os-mono text-xs" style={{ color: theme.textDim }}>
+          ~/experience.log
+        </span>
+      </div>
 
+      <div className="flex flex-col">
         {EXPERIENCE_DATA.map((item, idx) => (
-          <EXPCARD
-            key={idx}
-            period={item.period}
-            title={item.title}
-            focus={item.focus}
-            description={item.description}
-            techs={item.techs}
-            darkMode={darkMode}
-            aosAnimation={item.aos.animation}
-            aosDelay={item.aos.delay}
-            onTechClick={handleOpenModal}
-            primary={primary}
-          />
+          <React.Fragment key={item.company}>
+            <LogRow n={nextLine()} theme={theme}>
+              <span className="os-mono font-semibold" style={{ color: theme.accent }}>
+                [{item.period}]
+              </span>
+            </LogRow>
+            <LogRow n={nextLine()} theme={theme}>
+              <span className="os-sans font-semibold" style={{ color: theme.text }}>
+                {item.company} · {item.role}
+              </span>
+            </LogRow>
+            <LogRow n={nextLine()} theme={theme}>
+              <span className="os-mono" style={{ color: theme.textMuted }}>
+                <span style={{ color: theme.accent }}>focus:</span> {item.focus}
+              </span>
+            </LogRow>
+            <LogRow n={nextLine()} theme={theme}>
+              <p className="os-sans leading-relaxed" style={{ color: theme.textMuted }}>
+                {item.description}
+              </p>
+            </LogRow>
+            <LogRow n={nextLine()} theme={theme}>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="os-mono" style={{ color: theme.accent }}>
+                  stack:
+                </span>
+                {item.techs.map((tech) => (
+                  <button
+                    key={tech}
+                    type="button"
+                    onClick={() => handleOpenModal(tech)}
+                    className="os-mono text-xs px-2.5 py-1 transition-colors"
+                    style={{ background: theme.chipBg, border: `1px solid ${theme.chipBorder}`, color: theme.chipText }}
+                    aria-label={`Show details for ${tech}`}
+                  >
+                    {tech}
+                  </button>
+                ))}
+              </div>
+            </LogRow>
+
+            {idx < EXPERIENCE_DATA.length - 1 && (
+              <LogRow n={nextLine()} theme={theme}>
+                <span className="os-mono" style={{ color: theme.textDim }}>
+                  ────────────────────────────────────
+                </span>
+              </LogRow>
+            )}
+          </React.Fragment>
+        ))}
+
+        <LogRow n={nextLine()} theme={theme}>
+          <span className="os-mono" style={{ color: theme.textDim }}>
+            ────────────────────────────────────
+          </span>
+        </LogRow>
+        <LogRow n={nextLine()} theme={theme}>
+          <span className="os-mono font-semibold" style={{ color: theme.accent }}>
+            [EDUCATION]
+          </span>
+        </LogRow>
+        {EDUCATION.map((edu) => (
+          <LogRow key={edu.school} n={nextLine()} theme={theme}>
+            <span className="os-sans" style={{ color: theme.textMuted }}>
+              {edu.degree} — {edu.school} ({edu.time})
+            </span>
+          </LogRow>
         ))}
       </div>
 
-      {/* Modal Component */}
-      <Modal
-        show={isModalOpen}
-        onClose={handleCloseModal}
-        title="Technology Details"
-        modalData={modalData}
-      />
+      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} title="Technology Details" modalData={modalData} />
     </>
   );
 };
 
-function EXPCARD({
-  period,
-  title,
-  focus,
-  description,
-  techs,
-  darkMode,
-  onTechClick,
-  aosAnimation = "fade-right",
-  aosDelay = 400,
-  href,
-  icon,
-  label,
-  primary,
-}: {
-  period: string;
-  title: string;
-  focus: string;
-  description: string;
-  techs: string[];
-  darkMode: boolean;
-  primary: string;
-  onTechClick?: (tech: Tech) => void;
-  aosAnimation?: "fade-left" | "fade-right";
-  aosDelay?: number;
-  // Optional CTA (kept from your original props)
-  href?: string;
-  icon?: React.ReactNode;
-  label?: string;
-}) {
-  const baseCard =
-    "flex flex-col gap-4 lg:gap-8 shadow-sm backdrop-blur border p-4 rounded-md lg:flex-row transition-all duration-300";
-  const themeClasses = darkMode
-    ? "border-cyan-300/10 bg-neutral-950 text-gray-200 hover:border-cyan-300/25"
-    : "border-teal-500/15 bg-white text-gray-800 hover:border-teal-500/35";
-  const glowColors = darkMode ? ['#14b8a6', '#67e8f9', '#f0abfc'] : ['#0f766e', '#0891b2', '#c026d3'];
-
+function LogRow({ n, theme, children }: { n: string; theme: OsTheme; children: React.ReactNode }) {
   return (
-    <>
-        <div data-aos={aosAnimation} data-aos-delay={aosDelay}>
-          <BorderGlow
-            className="mt-5"
-            edgeSensitivity={24}
-            glowColor={darkMode ? "186 100 74" : "190 90 42"}
-            backgroundColor="transparent"
-            borderRadius={6}
-            glowRadius={36}
-            glowIntensity={darkMode ? 1.15 : 0.9}
-            coneSpread={22}
-            animated={false}
-            fillOpacity={0}
-            colors={glowColors}
-        >
-          <div className={`${baseCard} ${themeClasses} items-start`}>
-            {/* LEFT: period */}
-            <div className="lg:w-40 shrink-0 self-start">    {/* fixed width + no shrink */}
-                <span className={`${darkMode ? "text-gray-100" : "text-gray-800"} text-sm`}>
-                {period}
-                </span>
-            </div>
-
-        {/* RIGHT: content */}
-            <div className={`${darkMode ? "text-gray-100" : "text-gray-800"} flex-1`}>
-                <h2 className="text-lg font-semibold">{title}</h2>
-                <p className={`${darkMode ? "text-cyan-300" : "text-teal-700"} mt-1 text-sm font-medium`}>{focus}</p>
-                <p className={`${darkMode ? "text-gray-400" : "text-gray-600"} mt-2 text-sm leading-relaxed tracking-normal`}>{description}</p>
-                <div className="flex flex-wrap gap-1">
-                {techs.map((tech) => (
-                    <div key={tech}>
-                    <button
-                        type="button"
-                        className={`mt-2 px-2 py-1 border ${darkMode ? 'border-cyan-300/35 bg-cyan-300/5' : 'border-teal-500/20 bg-white/70 hover:bg-teal-500/5 hover:border-teal-500/40'} ${primary} rounded-md transition-colors duration-300`}
-                        onClick={onTechClick ? () => onTechClick(tech) : undefined}
-                        aria-label={`Show details for ${tech}`}
-                    >
-                        {tech}
-                    </button>
-                    </div>
-                ))}
-                </div>
-            </div>
-          </div>
-        </BorderGlow>
+    <div className="flex gap-3 sm:gap-4 py-1.5">
+      <span className="os-mono w-6 shrink-0 pt-0.5 text-right text-xs" style={{ color: theme.textDim }}>
+        {n}
+      </span>
+      <div className="flex-1 pl-3 sm:pl-4 text-xs sm:text-sm" style={{ borderLeft: `1px solid ${theme.border}` }}>
+        {children}
       </div>
-
-      {href && label && (
-        <a
-          href={href}
-          className={`group inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium shadow-sm backdrop-blur transition-all duration-300 ${
-            darkMode
-              ? "border-white/10 bg-neutral-950 text-gray-200 hover:bg-neutral-900 hover:border-white/20"
-              : "border-teal-500/15 bg-white text-gray-800 hover:bg-white hover:border-teal-500/35"
-          }`}
-          target={href.startsWith("http") ? "_blank" : undefined}
-          rel={href.startsWith("http") ? "noreferrer noopener" : undefined}
-        >
-          {icon && <span className="inline-flex h-5 w-5 items-center justify-center">{icon}</span>}
-          <span>{label}</span>
-        </a>
-      )}
-    </>
+    </div>
   );
 }
 
