@@ -10,7 +10,7 @@ interface MainViewProps {
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const STACK = ["Laravel", "React", "TypeScript", "Tailwind", "MySQL", "n8n Automation", "CloudPanel", "cPanel"];
+const STACK = ["PHP Laravel", "Python", "FastAPI", "PostgreSQL", "React", "TypeScript", "Tailwind", "MySQL", "n8n Automation", "CloudPanel", "cPanel"];
 
 const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
   const theme = getOsTheme(darkMode);
