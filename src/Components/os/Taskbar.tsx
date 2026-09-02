@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getOsTheme } from "../../theme/osTheme";
 import { useWindowThumbnails } from "../../Hooks/useWindowThumbnails";
-import { CloseGlyph, GridIcon } from "./OsIcons";
+import { CloseGlyph, GridIcon, SectionIcon } from "./OsIcons";
 import { SECTIONS, SECTION_META, SectionKey, TASKBAR_HEIGHT } from "./constants";
 
 interface TaskbarProps {
@@ -141,7 +141,9 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 onMouseEnter={() => scheduleHover(section)}
                 onMouseLeave={cancelHover}
                 onClick={() => onNavigateSection(section)}
-                className="group os-mono flex select-none cursor-grab items-center gap-2 whitespace-nowrap px-3 py-[7px] text-xs transition-colors duration-200 active:cursor-grabbing"
+                title={SECTION_META[section].file}
+                aria-label={SECTION_META[section].file}
+                className="group relative flex h-8 w-8 select-none cursor-grab items-center justify-center transition-colors duration-200 active:cursor-grabbing"
                 style={{
                   color: isActive ? theme.text : isMinimized ? theme.textDim : theme.textMuted,
                   background: isActive ? theme.accentSoft : "transparent",
@@ -150,9 +152,12 @@ const Taskbar: React.FC<TaskbarProps> = ({
                   opacity: draggingSection === section ? 0.4 : isMinimized ? 0.6 : 1,
                 }}
               >
-                <span>{SECTION_META[section].file}</span>
+                <SectionIcon section={section} size={15} />
                 {isMinimized && (
-                  <span className="h-1 w-1 rounded-full" style={{ background: theme.textDim }} />
+                  <span
+                    className="absolute bottom-[3px] left-1/2 h-1 w-1 -translate-x-1/2 rounded-full"
+                    style={{ background: theme.textDim }}
+                  />
                 )}
                 <button
                   type="button"
@@ -161,9 +166,10 @@ const Taskbar: React.FC<TaskbarProps> = ({
                     onCloseSection(section);
                   }}
                   aria-label={`Close ${SECTION_META[section].file}`}
-                  className="flex h-3.5 w-3.5 items-center justify-center opacity-50 transition-opacity group-hover:opacity-100 hover:!opacity-100"
+                  className="absolute right-0 top-0 hidden h-3 w-3 items-center justify-center group-hover:flex"
+                  style={{ background: theme.panel, border: `1px solid ${theme.border}`, color: theme.textMuted }}
                 >
-                  <CloseGlyph />
+                  <CloseGlyph size={6} />
                 </button>
               </div>
             );

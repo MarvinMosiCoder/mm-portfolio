@@ -1,4 +1,6 @@
 import React from "react";
+import { FiFolder, FiList, FiMail, FiUser } from "react-icons/fi";
+import { SectionKey } from "./constants";
 
 export const LogoMark: React.FC<{ size?: number }> = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
@@ -132,3 +134,15 @@ export const CloseGlyph: React.FC<{ size?: number }> = ({ size = 8 }) => (
     <line x1="7" y1="1" x2="1" y2="7" stroke="currentColor" strokeWidth="1.1" />
   </svg>
 );
+
+const SECTION_ICONS: Record<SectionKey, React.ComponentType<{ size?: number }>> = {
+  about: FiUser,
+  experience: FiList,
+  projects: FiFolder,
+  contact: FiMail,
+};
+
+export const SectionIcon: React.FC<{ section: SectionKey; size?: number }> = ({ section, size = 16 }) => {
+  const Icon = SECTION_ICONS[section];
+  return <Icon size={size} />;
+};

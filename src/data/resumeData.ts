@@ -22,7 +22,7 @@ export const resumeDataMap: Record<string, ResumeData> = {
         "HTML / CSS / Tailwind",
         "jQuery",
       ],
-      backend: ["PHP (Laravel), CodeIgniter"],
+      backend: ["PHP (Laravel), CodeIgniter", "Python", "PostgreSQL"],
       tools: [
         "Adobe Photoshop",
         "REST APIs",

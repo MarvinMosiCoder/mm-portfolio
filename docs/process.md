@@ -106,12 +106,23 @@ Keep new UI consistent with this system rather than introducing one-off styling.
   CloudPanel, cPanel. Keep this list honest — it was trimmed to remove "Supabase" when the
   database-backed admin area was removed; don't add a technology here unless it's actually
   used somewhere in the live app.
+- **Taskbar tabs are icon-only.** Each open section renders in `Taskbar.tsx` as a 32×32 square
+  showing nothing but its `SectionIcon`. The filename (`about.sys`, `experience.log`, ...) lives
+  on `title` and `aria-label`, and the hover-preview panel still prints it in its header, so
+  dropping the visible label doesn't drop the accessible name. The close button is absolutely
+  positioned in the tab's top-right corner and revealed on hover (`hidden` → `group-hover:flex`,
+  not an opacity fade), so the strip never reflows and the badge isn't clickable while invisible;
+  the minimized dot is centered on the bottom edge. Section icons come from the single
+  `SECTION_ICONS` map in `OsIcons.tsx`, shared with `DesktopRail` — adding a key to `SECTIONS`
+  means adding its icon there too (the `Record<SectionKey, ...>` type enforces it). Don't define
+  a second icon map locally in a component.
 - **Window chrome** (`src/Components/os/WindowChrome.tsx`) is the reusable "window" used for
   each About/Experience/Projects/Contact section on `/`. New sections on the desktop should be
   wrapped in it rather than styled ad hoc.
 - **Reusable OS chrome** lives in `src/Components/os/`: `MenuBar`, `Taskbar`, `DesktopRail`,
   `TaskSwitcher`, `MobileNavPanel`, `MinimizeGhost`, `BootScreen`, `WindowChrome`, and shared
-  icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`).
+  icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`,
+  `SectionIcon`).
   Section state (open/closed/minimized/active) is owned entirely by `Content.tsx` and passed
   down as props — chrome components don't read shared state on their own.
 
@@ -130,6 +141,9 @@ When updating the UI:
 7. Replace placeholder project links (anything containing `your-` in `src/data/projectsData.ts`)
    when a real project URL is available — `AnotherProjects.tsx` renders those as "pending"
    instead of a link until then.
+8. Give any icon-only control an accessible name — `title` for the native tooltip plus
+   `aria-label` for screen readers — and reveal hover-only affordances without changing layout
+   (absolute positioning, not a new element in the flow).
 
 ## Favicon & App Icons
 

@@ -1,7 +1,8 @@
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { FiFileText, FiFolder, FiList, FiMail, FiUser } from "react-icons/fi";
+import { FiFileText } from "react-icons/fi";
 import { getOsTheme } from "../../theme/osTheme";
+import { SectionIcon } from "./OsIcons";
 import { MENU_BAR_HEIGHT, SECTIONS, SECTION_META, SectionKey } from "./constants";
 
 interface DesktopRailProps {
@@ -11,13 +12,6 @@ interface DesktopRailProps {
   minimizedSections: Set<SectionKey>;
   onNavigateSection: (section: SectionKey) => void;
 }
-
-const ICONS: Record<SectionKey, React.ReactNode> = {
-  about: <FiUser size={17} />,
-  experience: <FiList size={17} />,
-  projects: <FiFolder size={17} />,
-  contact: <FiMail size={17} />,
-};
 
 const DesktopRail: React.FC<DesktopRailProps> = ({
   darkMode,
@@ -49,7 +43,7 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
             className="flex flex-col items-center gap-1.5 cursor-pointer group"
           >
             <div className="flex items-center justify-center transition-colors" style={iconBox(activeIndex === index, isClosed)}>
-              {ICONS[section]}
+              <SectionIcon section={section} size={17} />
             </div>
             <span
               className="os-mono text-[9px] tracking-wide"
