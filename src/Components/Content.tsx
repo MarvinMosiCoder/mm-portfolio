@@ -12,6 +12,9 @@ import Taskbar from "./os/Taskbar";
 import TaskSwitcher from "./os/TaskSwitcher";
 import MobileNavPanel from "./os/MobileNavPanel";
 import DesktopRail from "./os/DesktopRail";
+import ChessGame from "./os/ChessGame";
+import Solitaire from "./os/Solitaire";
+import Pinball from "./os/Pinball";
 import WindowChrome from "./os/WindowChrome";
 import MinimizeGhost, { GhostRect } from "./os/MinimizeGhost";
 import { getOsTheme } from "../theme/osTheme";
@@ -46,6 +49,10 @@ const Content: React.FC = () => {
   });
   const [navMenuOpen, setNavMenuOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [chessOpen, setChessOpen] = useState(false);
+  const [solitaireOpen, setSolitaireOpen] = useState(false);
+  const [pinballOpen, setPinballOpen] = useState(false);
+  const [desktopMenuAt, setDesktopMenuAt] = useState<{ x: number; y: number } | null>(null);
   const [closedSections, setClosedSections] = useState<Set<SectionKey>>(new Set());
   const [minimizedSections, setMinimizedSections] = useState<Set<SectionKey>>(new Set());
   const [minimizeAnim, setMinimizeAnim] = useState<MinimizeAnim | null>(null);
@@ -220,11 +227,28 @@ const Content: React.FC = () => {
     </WindowChrome>
   );
 
+  // Right-clicking empty desktop space opens the "reset icons" menu; a click
+  // that landed inside an actual window (data-section) or any control
+  // (button/link/input) keeps the browser's native menu / that control's own
+  // behavior instead — there's no clean z-index split between "empty canvas"
+  // and "window content" since floating windows render inside the same
+  // canvas div, so this has to be decided from the click target, not layout.
+  const handleDesktopContextMenu = (e: React.MouseEvent) => {
+    // Only the 2xl+ desktop rail has icons to reset — below that, leave the
+    // browser's native menu alone rather than swallowing it for nothing.
+    if (!hasRailGutter) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("[data-section], button, a, input, textarea, select")) return;
+    e.preventDefault();
+    setDesktopMenuAt({ x: e.clientX, y: e.clientY });
+  };
+
   return (
     <>
       <BootScreen darkMode={darkMode} />
       <div
         className="min-h-screen transition-colors duration-500"
+        onContextMenu={handleDesktopContextMenu}
         style={{
           backgroundColor: theme.bg,
           backgroundImage: `linear-gradient(${theme.grid} 1px, transparent 1px), linear-gradient(90deg, ${theme.grid} 1px, transparent 1px)`,
@@ -245,6 +269,9 @@ const Content: React.FC = () => {
           closedSections={closedSections}
           minimizedSections={minimizedSections}
           onNavigateSection={navigateToSection}
+          onOpenChess={() => setChessOpen(true)}
+          onOpenSolitaire={() => setSolitaireOpen(true)}
+          onOpenPinball={() => setPinballOpen(true)}
         />
         <TaskSwitcher
           darkMode={darkMode}
@@ -257,12 +284,20 @@ const Content: React.FC = () => {
           onNavigateSection={navigateToSection}
           onCloseSection={closeSection}
         />
+        <ChessGame darkMode={darkMode} open={chessOpen} onClose={() => setChessOpen(false)} />
+        <Solitaire darkMode={darkMode} open={solitaireOpen} onClose={() => setSolitaireOpen(false)} />
+        <Pinball darkMode={darkMode} open={pinballOpen} onClose={() => setPinballOpen(false)} />
         <DesktopRail
           darkMode={darkMode}
           activeIndex={navActiveIndex}
           closedSections={closedSections}
           minimizedSections={minimizedSections}
           onNavigateSection={navigateToSection}
+          onOpenChess={() => setChessOpen(true)}
+          onOpenSolitaire={() => setSolitaireOpen(true)}
+          onOpenPinball={() => setPinballOpen(true)}
+          desktopMenuAt={desktopMenuAt}
+          onCloseDesktopMenu={() => setDesktopMenuAt(null)}
         />
 
         {isDesktop ? (

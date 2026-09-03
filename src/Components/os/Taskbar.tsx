@@ -145,11 +145,11 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 aria-label={SECTION_META[section].file}
                 className="group relative flex h-8 w-8 select-none cursor-grab items-center justify-center transition-colors duration-200 active:cursor-grabbing"
                 style={{
-                  color: isActive ? theme.text : isMinimized ? theme.textDim : theme.textMuted,
+                  color: isActive ? theme.text : theme.textMuted,
                   background: isActive ? theme.accentSoft : "transparent",
                   borderTop: isActive ? `2px solid ${theme.accent}` : "2px solid transparent",
                   borderLeft: isDragOver ? `2px solid ${theme.accent}` : "2px solid transparent",
-                  opacity: draggingSection === section ? 0.4 : isMinimized ? 0.6 : 1,
+                  opacity: draggingSection === section ? 0.4 : isMinimized ? 0.85 : 1,
                 }}
               >
                 <SectionIcon section={section} size={15} />

@@ -146,3 +146,24 @@ export const SectionIcon: React.FC<{ section: SectionKey; size?: number }> = ({ 
   const Icon = SECTION_ICONS[section];
   return <Icon size={size} />;
 };
+
+export const ChessIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
+  <span aria-hidden="true" style={{ fontSize: size, lineHeight: 1 }}>
+    ♞
+  </span>
+);
+
+export const SolitaireIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
+  <span aria-hidden="true" style={{ fontSize: size, lineHeight: 1 }}>
+    ♠
+  </span>
+);
+
+export const PinballIcon: React.FC<{ size?: number }> = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+    <rect x="0.5" y="0.5" width="15" height="15" stroke="currentColor" strokeWidth="1" fill="none" />
+    <circle cx="8" cy="5.5" r="1.6" fill="currentColor" />
+    <path d="M3 12.5L6.5 11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    <path d="M13 12.5L9.5 11" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);

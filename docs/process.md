@@ -18,6 +18,7 @@ database, or authenticated admin area.
 - EmailJS and React Toastify for contact-style interactions
 - AOS (scroll reveal), React Icons, Lucide React
 - `html2canvas` (lazy-loaded) for taskbar/window-switcher thumbnail previews
+- `chess.js` for legal move generation, game status, undo, and promotion in `chess.app`
 
 There is no database or backend client in this project. A previous Supabase-backed admin
 dashboard (auth, file storage, resume-data forms) was removed entirely — see
@@ -127,9 +128,10 @@ Keep new UI consistent with this system rather than introducing one-off styling.
   in-flow window with CSS-breakout maximize, no drag. Don't fork this component for the two modes;
   extend the `floating` branch instead.
 - **Reusable OS chrome** lives in `src/Components/os/`: `MenuBar`, `Taskbar`, `DesktopRail`,
-  `TaskSwitcher`, `MobileNavPanel`, `MinimizeGhost`, `BootScreen`, `WindowChrome`, and shared
+  `TaskSwitcher`, `MobileNavPanel`, `ContextMenu`, `MinimizeGhost`, `BootScreen`, `WindowChrome`,
+  the full-screen `ChessGame`, `Solitaire`, and `Pinball` apps, and shared
   icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`,
-  `SectionIcon`).
+  `SectionIcon`, `ChessIcon`, `SolitaireIcon`, `PinballIcon`).
   Section state (open/closed/minimized/active, plus floating position/size/z-order/maximized via
   `useWindowLayout`) is owned entirely by `Content.tsx` and passed down as props — chrome
   components don't read shared state on their own.
@@ -195,6 +197,42 @@ untouched — dragging doesn't work well on touch, so there's no floating fallba
   "Contact Me" button, calls this one function rather than driving `react-scroll` directly, which
   matters in floating mode since there's no page to scroll.
 
+## Desktop Icons and App Menu
+
+At `2xl` widths and above, `DesktopRail.tsx` behaves like a desktop icon surface rather than a
+fixed navigation rail. It contains the four portfolio section icons, `resume.pdf`, and three game
+apps: `chess.app`, `solitaire.app`, and `pinball.app`.
+
+- **Icon layout** is owned by `src/Hooks/useDesktopIconLayout.ts`. Icons are freely draggable,
+  snap to an 84x77 grid on release, remain inside the menu-bar/taskbar-safe viewport, and swap
+  places when one is dropped into an occupied cell. Positions persist in `localStorage` under
+  `marvinmosicoos-desktop-icons` and are clamped again when the viewport changes size.
+- **Removing icons** uses the shared `ContextMenu.tsx`: right-click an icon and choose
+  `Remove from desktop`. Hidden keys persist under `marvinmosicoos-desktop-hidden`; removing an
+  icon only hides its shortcut and does not close or delete the underlying section/app.
+- **Desktop recovery actions** appear when empty desktop space is right-clicked. `Reset icon
+  positions` returns visible icons to their default column, while `Restore removed apps` makes
+  every hidden icon visible again. Native context menus are left intact inside windows and on
+  interactive controls.
+- **Mobile navigation** is a left-side app panel with filename/display-name search. It includes
+  the portfolio sections, resume, and all three games, and clears its query whenever it closes.
+  Desktop icon placement and hiding intentionally apply only to the `2xl` desktop surface.
+
+## Built-in Games
+
+The games are full-screen modal apps launched from the desktop icons or mobile app menu. Each
+uses the active OS theme, locks background scrolling while open, and closes with its close button
+or `Escape`.
+
+- **Chess** (`ChessGame.tsx`) is local two-player chess backed by `chess.js`. It validates moves,
+  highlights legal destinations, reports check/checkmate/draw states, supports promotion choices,
+  undo, and a new game. Closing and reopening preserves the current board until `New game` is used.
+- **Solitaire** (`Solitaire.tsx`) implements draw-one Klondike with selectable card runs,
+  foundations, stock recycling, undo, win detection, and a new shuffled game.
+- **Pinball** (`Pinball.tsx`) is a canvas-based three-ball game with bumpers, collision physics,
+  scoring, touch controls, and keyboard controls. Use Left/Right Arrow or `A`/`D` for the flippers
+  and Space to launch. Opening the app starts a fresh game.
+
 ## Favicon & App Icons
 
 The favicon and app icons (`public/favicon.svg`, `public/favicon.ico`, `public/favicon.png`,
@@ -240,8 +278,8 @@ itself to dark mode.
 - `src/Hooks/` contains shared hooks: `useActiveSection` (scroll-spy for the desktop sections,
   used below the floating-window breakpoint), `useWindowThumbnails` (lazy `html2canvas` capture +
   cache for taskbar/switcher previews), `useMediaQuery` (small `matchMedia` wrapper), `useWindowLayout`
-  (floating-window position/size/z-order + `localStorage` persistence — see Window Manager below),
-  and `LanguageInfo`.
+  (floating-window position/size/z-order + `localStorage` persistence — see Window Manager above),
+  `useDesktopIconLayout` (desktop icon position/visibility persistence), and `LanguageInfo`.
 - `src/data/` stores portfolio, project, and resume data used by the UI (all static).
 - `public/` contains static assets served by the app, including the generated favicon/app-icon
   set (see Favicon & App Icons above).
