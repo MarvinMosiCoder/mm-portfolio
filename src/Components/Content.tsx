@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Element, scroller } from "react-scroll";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -16,7 +16,17 @@ import WindowChrome from "./os/WindowChrome";
 import MinimizeGhost, { GhostRect } from "./os/MinimizeGhost";
 import { getOsTheme } from "../theme/osTheme";
 import { useActiveSection } from "../Hooks/useActiveSection";
-import { MENU_BAR_HEIGHT, SCROLL_OFFSET, SECTIONS, SECTION_META, SectionKey, TASKBAR_HEIGHT } from "./os/constants";
+import { useMediaQuery } from "../Hooks/useMediaQuery";
+import { useWindowLayout } from "../Hooks/useWindowLayout";
+import {
+  DESKTOP_BREAKPOINT,
+  MENU_BAR_HEIGHT,
+  SCROLL_OFFSET,
+  SECTIONS,
+  SECTION_META,
+  SectionKey,
+  TASKBAR_HEIGHT,
+} from "./os/constants";
 
 interface MinimizeAnim {
   section: SectionKey;
@@ -39,15 +49,49 @@ const Content: React.FC = () => {
   const [closedSections, setClosedSections] = useState<Set<SectionKey>>(new Set());
   const [minimizedSections, setMinimizedSections] = useState<Set<SectionKey>>(new Set());
   const [minimizeAnim, setMinimizeAnim] = useState<MinimizeAnim | null>(null);
+  const [focusedSection, setFocusedSection] = useState<SectionKey>("about");
   const { activeIndex, goTo } = useActiveSection([...SECTIONS]);
   const theme = getOsTheme(darkMode);
-  const activeSection = SECTIONS[activeIndex];
+
+  // Desktop-and-up gets real, draggable/resizable floating windows (see
+  // useWindowLayout); below that breakpoint the sections stay in the
+  // original stacked, scroll-navigated layout — dragging doesn't work well
+  // on touch, so there's no floating fallback for mobile/tablet.
+  const isDesktop = useMediaQuery(DESKTOP_BREAKPOINT);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  // Padding on the canvas wouldn't actually keep windows off the rail — a
+  // padded box's containing block for `position:absolute` children still
+  // starts at its outer (padding) edge, not its content edge, so a window
+  // at left:0 renders flush with the rail instead of past it. Reserve the
+  // rail's gutter as a real left offset instead, matching the 8rem (2xl:pl-32)
+  // DesktopRail has always used, plus the same side margins <main> uses.
+  const hasSideMargin = useMediaQuery("(min-width: 640px)");
+  const hasRailGutter = useMediaQuery("(min-width: 1536px)");
+  const canvasSideMargin = hasSideMargin ? 24 : 16;
+  const canvasLeftInset = canvasSideMargin + (hasRailGutter ? 128 : 0);
+  const desktopRef = useRef<HTMLDivElement | null>(null);
+  const [desktopBounds, setDesktopBounds] = useState({ width: 0, height: 0 });
+  const { getRect, commitRect, bringToFront, zIndexOf, isMaximized, toggleMaximize } = useWindowLayout(desktopBounds);
+
+  const activeSection = isDesktop ? focusedSection : SECTIONS[activeIndex];
+  const navActiveIndex = isDesktop ? SECTIONS.indexOf(focusedSection) : activeIndex;
   const taskbarSections = SECTIONS.filter((s) => !closedSections.has(s));
   const visibleSections = taskbarSections.filter((s) => !minimizedSections.has(s));
 
   useEffect(() => {
     AOS.init({ duration: 900, offset: 80, once: true });
   }, []);
+
+  useLayoutEffect(() => {
+    if (!isDesktop) return;
+    const el = desktopRef.current;
+    if (!el) return;
+    const measure = () => setDesktopBounds({ width: el.clientWidth, height: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isDesktop]);
 
   useEffect(() => {
     // 100vw includes the scrollbar's width, so a full-bleed element sized with
@@ -105,9 +149,6 @@ const Content: React.FC = () => {
 
   const navigateToSection = useCallback(
     (section: SectionKey) => {
-      const index = SECTIONS.indexOf(section);
-      goTo(index);
-
       let needsRemount = false;
       setClosedSections((prev) => {
         if (!prev.has(section)) return prev;
@@ -124,6 +165,15 @@ const Content: React.FC = () => {
         return next;
       });
 
+      if (isDesktop) {
+        bringToFront(section);
+        setFocusedSection(section);
+        return;
+      }
+
+      const index = SECTIONS.indexOf(section);
+      goTo(index);
+
       const scrollNow = () =>
         scroller.scrollTo(section, { smooth: true, duration: 500, offset: SCROLL_OFFSET });
 
@@ -134,7 +184,40 @@ const Content: React.FC = () => {
         scrollNow();
       }
     },
-    [goTo]
+    [isDesktop, bringToFront, goTo]
+  );
+
+  const renderFloatingWindow = (section: SectionKey) => (
+    <WindowChrome
+      key={section}
+      sectionKey={section}
+      darkMode={darkMode}
+      title={SECTION_META[section].file}
+      active={activeSection === section}
+      onClose={() => closeSection(section)}
+      onMinimize={() => minimizeSection(section)}
+      onFocus={() => {
+        bringToFront(section);
+        setFocusedSection(section);
+      }}
+      reducedMotion={reducedMotion}
+      floating={{
+        rect: getRect(section),
+        zIndex: zIndexOf(section),
+        maximized: isMaximized(section),
+        bounds: desktopBounds,
+        taskbarHeight: TASKBAR_HEIGHT,
+        onRectChange: (r) => commitRect(section, r),
+        onToggleMaximize: () => toggleMaximize(section),
+      }}
+    >
+      {section === "about" && (
+        <MainView darkMode={darkMode} setDarkMode={setDarkMode} onNavigateSection={navigateToSection} />
+      )}
+      {section === "experience" && <Experience darkMode={darkMode} />}
+      {section === "projects" && <Projects darkMode={darkMode} />}
+      {section === "contact" && <Contact darkMode={darkMode} />}
+    </WindowChrome>
   );
 
   return (
@@ -151,8 +234,6 @@ const Content: React.FC = () => {
         <MenuBar
           darkMode={darkMode}
           setDarkMode={setDarkMode}
-          activeIndex={activeIndex}
-          onNavigateSection={navigateToSection}
           onOpenMobileMenu={() => setNavMenuOpen(true)}
         />
         <MobileNavPanel
@@ -160,7 +241,7 @@ const Content: React.FC = () => {
           setDarkMode={setDarkMode}
           open={navMenuOpen}
           onClose={() => setNavMenuOpen(false)}
-          activeIndex={activeIndex}
+          activeIndex={navActiveIndex}
           closedSections={closedSections}
           minimizedSections={minimizedSections}
           onNavigateSection={navigateToSection}
@@ -178,47 +259,82 @@ const Content: React.FC = () => {
         />
         <DesktopRail
           darkMode={darkMode}
-          activeIndex={activeIndex}
+          activeIndex={navActiveIndex}
           closedSections={closedSections}
           minimizedSections={minimizedSections}
           onNavigateSection={navigateToSection}
         />
 
-        <main
-          className="mx-auto w-full max-w-4xl px-4 sm:px-6 2xl:pl-32"
-          style={{ paddingTop: MENU_BAR_HEIGHT + 28, paddingBottom: TASKBAR_HEIGHT + 40 }}
-        >
-          {visibleSections.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <p className="os-mono text-sm" style={{ color: theme.textDim }}>
-                Desktop is empty.
-              </p>
-              <p className="os-mono text-xs mt-2" style={{ color: theme.textDim }}>
-                Reopen a window from MENU or the taskbar.
-              </p>
+        {isDesktop ? (
+          <>
+            <div
+              ref={desktopRef}
+              className="fixed z-20 overflow-hidden"
+              style={{
+                top: MENU_BAR_HEIGHT,
+                bottom: TASKBAR_HEIGHT,
+                left: canvasLeftInset,
+                right: canvasSideMargin,
+              }}
+            >
+              {visibleSections.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <p className="os-mono text-sm" style={{ color: theme.textDim }}>
+                    Desktop is empty.
+                  </p>
+                  <p className="os-mono text-xs mt-2" style={{ color: theme.textDim }}>
+                    Reopen a window from MENU or the taskbar.
+                  </p>
+                </div>
+              ) : (
+                visibleSections.filter((section) => !isMaximized(section)).map(renderFloatingWindow)
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col gap-8">
-              {visibleSections.map((section) => (
-                <Element key={section} name={section} data-section={section}>
-                  <WindowChrome
-                    darkMode={darkMode}
-                    title={SECTION_META[section].file}
-                    active={activeSection === section}
-                    aos="fade-up"
-                    onClose={() => closeSection(section)}
-                    onMinimize={() => minimizeSection(section)}
-                  >
-                    {section === "about" && <MainView darkMode={darkMode} setDarkMode={setDarkMode} />}
-                    {section === "experience" && <Experience darkMode={darkMode} />}
-                    {section === "projects" && <Projects darkMode={darkMode} />}
-                    {section === "contact" && <Contact darkMode={darkMode} />}
-                  </WindowChrome>
-                </Element>
-              ))}
-            </div>
-          )}
-        </main>
+            {/* Maximized windows render outside the canvas, as siblings of the menu
+                bar and taskbar — a descendant can never out-rank its ancestor's
+                stacking context, so covering the menu bar needs real sibling DOM
+                position, not just a higher z-index nested inside the canvas. */}
+            {visibleSections.filter((section) => isMaximized(section)).map(renderFloatingWindow)}
+          </>
+        ) : (
+          <main
+            className="mx-auto w-full max-w-4xl px-4 sm:px-6 2xl:pl-32"
+            style={{ paddingTop: MENU_BAR_HEIGHT + 28, paddingBottom: TASKBAR_HEIGHT + 40 }}
+          >
+            {visibleSections.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <p className="os-mono text-sm" style={{ color: theme.textDim }}>
+                  Desktop is empty.
+                </p>
+                <p className="os-mono text-xs mt-2" style={{ color: theme.textDim }}>
+                  Reopen a window from MENU or the taskbar.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-8">
+                {visibleSections.map((section) => (
+                  <Element key={section} name={section} data-section={section}>
+                    <WindowChrome
+                      darkMode={darkMode}
+                      title={SECTION_META[section].file}
+                      active={activeSection === section}
+                      aos="fade-up"
+                      onClose={() => closeSection(section)}
+                      onMinimize={() => minimizeSection(section)}
+                    >
+                      {section === "about" && (
+                        <MainView darkMode={darkMode} setDarkMode={setDarkMode} onNavigateSection={navigateToSection} />
+                      )}
+                      {section === "experience" && <Experience darkMode={darkMode} />}
+                      {section === "projects" && <Projects darkMode={darkMode} />}
+                      {section === "contact" && <Contact darkMode={darkMode} />}
+                    </WindowChrome>
+                  </Element>
+                ))}
+              </div>
+            )}
+          </main>
+        )}
 
         <Taskbar
           darkMode={darkMode}

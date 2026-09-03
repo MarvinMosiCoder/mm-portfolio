@@ -118,13 +118,21 @@ Keep new UI consistent with this system rather than introducing one-off styling.
   a second icon map locally in a component.
 - **Window chrome** (`src/Components/os/WindowChrome.tsx`) is the reusable "window" used for
   each About/Experience/Projects/Contact section on `/`. New sections on the desktop should be
-  wrapped in it rather than styled ad hoc.
+  wrapped in it rather than styled ad hoc. Its titlebar puts the ACTIVE indicator on the left and
+  the title + `WinControls` (minimize/maximize/close) flush right, controls at the very edge — the
+  same markup renders both the floating (desktop) and stacked (mobile) titlebar, so this layout is
+  shared everywhere, not just one mode. Pass its optional `floating` prop (`{ rect, zIndex,
+  maximized, bounds, taskbarHeight, onRectChange, onToggleMaximize }`) to get drag/resize/fullscreen
+  behavior — see Window Manager below; omit it and the component renders exactly as a plain
+  in-flow window with CSS-breakout maximize, no drag. Don't fork this component for the two modes;
+  extend the `floating` branch instead.
 - **Reusable OS chrome** lives in `src/Components/os/`: `MenuBar`, `Taskbar`, `DesktopRail`,
   `TaskSwitcher`, `MobileNavPanel`, `MinimizeGhost`, `BootScreen`, `WindowChrome`, and shared
   icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`,
   `SectionIcon`).
-  Section state (open/closed/minimized/active) is owned entirely by `Content.tsx` and passed
-  down as props — chrome components don't read shared state on their own.
+  Section state (open/closed/minimized/active, plus floating position/size/z-order/maximized via
+  `useWindowLayout`) is owned entirely by `Content.tsx` and passed down as props — chrome
+  components don't read shared state on their own.
 
 When updating the UI:
 
@@ -132,7 +140,8 @@ When updating the UI:
 2. Keep section spacing compact and consistent with Tailwind spacing utilities such as `py-8`,
    `py-10`, and `py-12`.
 3. Avoid active navigation styles that shift layout; use color, weight, border, or underline
-   states instead (see `theme.accent` usage in `MenuBar.tsx`).
+   states instead (see `theme.accent` usage on the active taskbar tab in `Taskbar.tsx` or the
+   active icon in `DesktopRail.tsx`).
 4. Use square, bordered controls and cards — not rounded — to stay consistent with the OS chrome.
 5. Use project screenshots or meaningful product visuals when available instead of generic
    logos only.
@@ -144,6 +153,47 @@ When updating the UI:
 8. Give any icon-only control an accessible name — `title` for the native tooltip plus
    `aria-label` for screen readers — and reveal hover-only affordances without changing layout
    (absolute positioning, not a new element in the flow).
+
+## Window Manager (Floating Windows)
+
+At desktop widths (`≥768px`, matching Tailwind's `md` — `DESKTOP_BREAKPOINT` in `os/constants.ts`),
+the four sections stop being stacked, scroll-navigated panels and become real floating windows:
+draggable by their titlebar, resizable from any edge or corner, individually maximizable to true
+fullscreen, and remembered across visits. Below `768px` the original stacked/scroll layout is
+untouched — dragging doesn't work well on touch, so there's no floating fallback for mobile/tablet.
+
+- **`src/Hooks/useMediaQuery.ts`** is a small `matchMedia` wrapper. `Content.tsx` uses it for the
+  `768px` desktop/floating threshold, the `640px` and `1536px` breakpoints that size the desktop
+  canvas's side margins and reserve room for `DesktopRail`, and `prefers-reduced-motion` (skips the
+  maximize/restore transition).
+- **`src/Hooks/useWindowLayout.ts`** owns each window's `{x, y, width, height}`, click-to-front
+  z-order, and maximized state. Rects are clamped back into view whenever the viewport resizes, and
+  are persisted to `localStorage` (`marvinmosicoos-window-layout`) on drag/resize *end* — dragging
+  updates only `WindowChrome`'s own local state while the gesture is in progress, not on every
+  pointer move.
+- **The desktop canvas reserves the rail gutter with a real offset, not padding.** The floating-window
+  container in `Content.tsx` sets its `left`/`right` via inline `style`, computed from the
+  breakpoints above — padding on a positioned ancestor doesn't inset its `position:absolute`
+  children (their containing block is the ancestor's full padding box), so a window at `left: 0`
+  would render flush with the canvas's outer edge regardless of padding, sliding underneath
+  `DesktopRail`. The reserved gutter is `128px` at `1536px`+, matching the width `DesktopRail`
+  itself has always needed, on top of the same base side margin `<main>` uses below that.
+- **Maximize is true fullscreen, not a bigger box.** A maximized window escapes the canvas
+  entirely and covers the whole page — menu bar and rail included — down to just above the
+  taskbar, which stays reachable. That needs more than a z-index bump: a CSS stacking context caps
+  every descendant's z-index at its own level when compared against outside siblings, so a window
+  nested inside the canvas (`z-20`) can never out-rank the menu bar (`z-40`) no matter what
+  z-index it declares. `Content.tsx` renders maximized windows as real DOM siblings of
+  `MenuBar`/`Taskbar` instead, at `z-45` — see the `renderFloatingWindow` helper and how
+  `visibleSections` gets filtered by `isMaximized()` into two separate render locations.
+- **Section-level navigation no longer lives in `MenuBar`.** The old About/Experience/Projects/
+  Contact/Resume text links were removed — `Taskbar` (icon tabs, all widths) and `DesktopRail`
+  (icon rail, `2xl`+) are the navigation now, consistent with a real desktop app using a taskbar
+  instead of a browser nav bar. `MenuBar` is just the logo, availability status, theme toggle, and
+  the mobile menu trigger. `navigateToSection` in `Content.tsx` still branches on `isDesktop`
+  (bring-to-front + focus vs. smooth-scroll) — every nav affordance, including `MainView`'s
+  "Contact Me" button, calls this one function rather than driving `react-scroll` directly, which
+  matters in floating mode since there's no page to scroll.
 
 ## Favicon & App Icons
 
@@ -187,9 +237,11 @@ itself to dark mode.
   Contact, Resume, AnotherProjects, MainView).
 - `src/Components/os/` contains the reusable desktop-OS chrome (see Design System above).
 - `src/theme/` contains the OS color-token system (`osTheme.ts`).
-- `src/Hooks/` contains shared hooks: `useActiveSection` (scroll-spy for the desktop sections),
-  `useWindowThumbnails` (lazy `html2canvas` capture + cache for taskbar/switcher previews), and
-  `LanguageInfo`.
+- `src/Hooks/` contains shared hooks: `useActiveSection` (scroll-spy for the desktop sections,
+  used below the floating-window breakpoint), `useWindowThumbnails` (lazy `html2canvas` capture +
+  cache for taskbar/switcher previews), `useMediaQuery` (small `matchMedia` wrapper), `useWindowLayout`
+  (floating-window position/size/z-order + `localStorage` persistence — see Window Manager below),
+  and `LanguageInfo`.
 - `src/data/` stores portfolio, project, and resume data used by the UI (all static).
 - `public/` contains static assets served by the app, including the generated favicon/app-icon
   set (see Favicon & App Icons above).

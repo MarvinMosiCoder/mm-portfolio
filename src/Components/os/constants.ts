@@ -13,3 +13,7 @@ export const SECTION_META: Record<SectionKey, { label: string; file: string }> =
 };
 
 export const SCROLL_OFFSET = -(MENU_BAR_HEIGHT + 20);
+
+export const MIN_WINDOW_WIDTH = 360;
+export const MIN_WINDOW_HEIGHT = 280;
+export const DESKTOP_BREAKPOINT = "(min-width: 768px)";

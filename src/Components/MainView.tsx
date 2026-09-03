@@ -1,18 +1,18 @@
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Link as ScrollLink } from "react-scroll";
 import { FaEnvelope, FaFacebook, FaFileAlt, FaGithub, FaInstagram, FaLinkedin } from "react-icons/fa";
 import { getOsTheme } from "../theme/osTheme";
-import { MENU_BAR_HEIGHT } from "./os/constants";
+import { SectionKey } from "./os/constants";
 
 interface MainViewProps {
   darkMode: boolean;
   setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+  onNavigateSection: (section: SectionKey) => void;
 }
 
 const STACK = ["PHP Laravel", "Python", "FastAPI", "PostgreSQL", "React", "TypeScript", "Tailwind", "MySQL", "n8n Automation", "CloudPanel", "cPanel"];
 
-const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
+const MainView: React.FC<MainViewProps> = ({ darkMode, onNavigateSection }) => {
   const theme = getOsTheme(darkMode);
 
   return (
@@ -60,17 +60,15 @@ const MainView: React.FC<MainViewProps> = ({ darkMode }) => {
           <FaFileAlt size={13} />
           View Resume
         </RouterLink>
-        <ScrollLink
-          to="contact"
-          smooth
-          duration={500}
-          offset={-(MENU_BAR_HEIGHT + 20)}
+        <button
+          type="button"
+          onClick={() => onNavigateSection("contact")}
           className="os-mono inline-flex cursor-pointer items-center justify-center gap-2 border px-5 py-3 text-xs font-semibold transition"
           style={{ borderColor: theme.borderStrong, color: theme.text }}
         >
           <FaEnvelope size={13} />
           Contact Me
-        </ScrollLink>
+        </button>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
