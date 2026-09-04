@@ -46,6 +46,12 @@ const Taskbar: React.FC<TaskbarProps> = ({
   const [draggingSection, setDraggingSection] = useState<SectionKey | null>(null);
   const [dragOverSection, setDragOverSection] = useState<SectionKey | null>(null);
   const [hoveredSection, setHoveredSection] = useState<SectionKey | null>(null);
+  // Separate from `hoveredSection`, which is gated behind HOVER_DELAY so the
+  // preview panel doesn't flicker while the pointer sweeps across the strip.
+  // The tab's own highlight has to answer immediately, so it tracks the
+  // pointer directly.
+  const [pointerOverSection, setPointerOverSection] = useState<SectionKey | null>(null);
+  const [hoveredChip, setHoveredChip] = useState<"menu" | "count" | null>(null);
 
   const tabRefs = useRef<Partial<Record<SectionKey, HTMLDivElement | null>>>({});
   const hoverTimer = useRef<number | null>(null);
@@ -57,6 +63,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   const visibleOrder = order.filter((s) => openSections.includes(s));
 
   const scheduleHover = (section: SectionKey) => {
+    setPointerOverSection(section);
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => {
       setHoveredSection(section);
@@ -65,6 +72,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   };
 
   const cancelHover = () => {
+    setPointerOverSection(null);
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = null;
     setHoveredSection(null);
@@ -98,9 +106,15 @@ const Taskbar: React.FC<TaskbarProps> = ({
         <button
           type="button"
           onClick={onOpenMenu}
+          onMouseEnter={() => setHoveredChip("menu")}
+          onMouseLeave={() => setHoveredChip(null)}
           aria-label="Open menu"
-          className="flex items-center gap-2 px-3 py-[7px] shrink-0"
-          style={{ background: theme.chipBg, border: `1px solid ${theme.chipBorder}`, color: theme.text }}
+          className="flex items-center gap-2 px-3 py-[7px] shrink-0 transition-colors"
+          style={{
+            background: hoveredChip === "menu" ? theme.hover : theme.chipBg,
+            border: `1px solid ${hoveredChip === "menu" ? theme.textDim : theme.chipBorder}`,
+            color: theme.text,
+          }}
         >
           <GridIcon />
           <span className="os-mono text-xs font-semibold">MENU</span>
@@ -113,6 +127,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
             const isMinimized = minimizedSections.has(section);
             const isActive = activeSection === section && !isMinimized;
             const isDragOver = dragOverSection === section && draggingSection !== section;
+            const isPointerOver = pointerOverSection === section && draggingSection === null;
             return (
               <div
                 key={section}
@@ -145,8 +160,8 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 aria-label={SECTION_META[section].file}
                 className="group relative flex h-8 w-8 select-none cursor-grab items-center justify-center transition-colors duration-200 active:cursor-grabbing"
                 style={{
-                  color: isActive ? theme.text : theme.textMuted,
-                  background: isActive ? theme.accentSoft : "transparent",
+                  color: isActive || isPointerOver ? theme.text : theme.textMuted,
+                  background: isActive ? theme.accentSoft : isPointerOver ? theme.hover : "transparent",
                   borderTop: isActive ? `2px solid ${theme.accent}` : "2px solid transparent",
                   borderLeft: isDragOver ? `2px solid ${theme.accent}` : "2px solid transparent",
                   opacity: draggingSection === section ? 0.4 : isMinimized ? 0.85 : 1,
@@ -183,9 +198,15 @@ const Taskbar: React.FC<TaskbarProps> = ({
           <button
             type="button"
             onClick={onOpenSwitcher}
+            onMouseEnter={() => setHoveredChip("count")}
+            onMouseLeave={() => setHoveredChip(null)}
             aria-label="Open window switcher"
-            className="os-mono text-[10px] px-1.5 py-0.5 shrink-0"
-            style={{ background: theme.chipBg, border: `1px solid ${theme.chipBorder}`, color: theme.textMuted }}
+            className="os-mono text-[10px] px-1.5 py-0.5 shrink-0 transition-colors"
+            style={{
+              background: hoveredChip === "count" ? theme.hover : theme.chipBg,
+              border: `1px solid ${hoveredChip === "count" ? theme.textDim : theme.chipBorder}`,
+              color: hoveredChip === "count" ? theme.text : theme.textMuted,
+            }}
           >
             {openSections.length}
           </button>

@@ -11,6 +11,41 @@
   font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
 }
 
+/* Tells the browser which palette its own UI belongs to: scrollbars, form
+   control internals, the canvas behind the page (visible when a scroll
+   overshoots), and default text on any element that never got an explicit
+   color. Without it those all stay in light mode while the app is dark. */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Placeholders don't inherit `color` — the UA paints them with its own gray,
+   which sits almost invisibly on the dark theme's near-black fields. Tie them
+   to the input's own color instead so they track whichever theme is active. */
+input::placeholder,
+textarea::placeholder {
+  color: currentColor;
+  opacity: 0.4;
+}
+
+/* Chrome paints autofilled fields with a hardcoded near-white background and
+   black text, which blows a hole in the dark theme. The background can't be
+   overridden directly, only outrun: an absurdly long transition delay means
+   the UA's fill never actually arrives, and text-fill-color takes over the
+   glyph color. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: currentColor;
+  caret-color: currentColor;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
 @keyframes os-blink {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }

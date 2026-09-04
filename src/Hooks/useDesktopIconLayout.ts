@@ -49,8 +49,26 @@ function samePosition(a: IconPosition, b: IconPosition): boolean {
   return a.x === b.x && a.y === b.y;
 }
 
-function defaultPosition(index: number): IconPosition {
-  return { x: RAIL_LEFT, y: RAIL_TOP + index * GRID_CELL_HEIGHT };
+// How many icons a single column can hold before the next one would hang past
+// the taskbar. Bounds aren't measured until after first paint, so an unknown
+// viewport means "unlimited" and the layout stays a single column until the
+// real height arrives.
+function iconsPerColumn(bounds: Bounds): number {
+  if (bounds.height <= 0) return Number.MAX_SAFE_INTEGER;
+  const lastRowTop = bounds.height - TASKBAR_HEIGHT - ICON_HEIGHT - RAIL_TOP;
+  return Math.max(1, Math.floor(lastRowTop / GRID_CELL_HEIGHT) + 1);
+}
+
+// Icons flow down the column and wrap into the next one, like a real desktop.
+// Without the wrap, everything past the bottom of the screen clamps onto the
+// same last row and stacks on top of whatever is already sitting there — on a
+// short viewport that buried pinball.app under solitaire.app.
+function defaultPosition(index: number, bounds: Bounds): IconPosition {
+  const perColumn = iconsPerColumn(bounds);
+  return {
+    x: RAIL_LEFT + Math.floor(index / perColumn) * GRID_CELL_WIDTH,
+    y: RAIL_TOP + (index % perColumn) * GRID_CELL_HEIGHT,
+  };
 }
 
 function loadStored(): Record<string, IconPosition> {
@@ -109,8 +127,8 @@ export function useDesktopIconLayout<K extends string>(keys: readonly K[]) {
   }, []);
 
   const rawPosition = useCallback(
-    (key: K, from: Record<string, IconPosition>) => from[key] ?? defaultPosition(keys.indexOf(key)),
-    [keys]
+    (key: K, from: Record<string, IconPosition>) => from[key] ?? defaultPosition(keys.indexOf(key), bounds),
+    [keys, bounds]
   );
 
   const getPosition = useCallback(

@@ -137,7 +137,13 @@ const Experience: React.FC<ExperienceProps> = ({ darkMode = true }) => {
         ))}
       </div>
 
-      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} title="Technology Details" modalData={modalData} />
+      <Modal
+        show={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Technology Details"
+        modalData={modalData}
+        darkMode={darkMode}
+      />
     </>
   );
 };

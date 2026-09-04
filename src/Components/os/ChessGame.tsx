@@ -195,7 +195,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ darkMode, open, onClose }) => {
                   aria-label={cell ? `${square}, ${cell.color === "w" ? "white" : "black"} ${cell.type}` : square}
                   className="relative flex items-center justify-center"
                   style={{
-                    background: isSelected ? theme.accentSoft : isLight ? theme.panel : theme.bg,
+                    background: isSelected ? theme.accentSoft : isLight ? theme.surfaceAlt : theme.bg,
                     boxShadow: isSelected ? `inset 0 0 0 2px ${theme.accent}` : undefined,
                   }}
                 >

@@ -102,11 +102,18 @@ Keep new UI consistent with this system rather than introducing one-off styling.
   indicator). Keep new components square to match.
 - **Accent color** is a single amber/gold (`theme.accent`) used sparingly for active states,
   focus indicators, and the one "available for work" dot — not for large fills or gradients.
+- **Hover states use `theme.hover`**, a translucent overlay rather than a solid color, because
+  the same hover has to read as "raised" on the desktop's grid background, on the taskbar, and
+  on a panel — a fixed hex would match one of those and disappear. `theme.surfaceAlt` is the
+  opposite case: a solid fill that must stay distinct from `theme.bg` right next to it (chess
+  squares), where `theme.panel` is too close to `bg` in dark mode to read as a checker. Status
+  colors are `theme.success` / `theme.danger` — don't hardcode a red or green.
 - **Chip list**: the tech-stack chips on the About window (`src/Components/MainView.tsx`,
-  `STACK` array) currently read Laravel, React, TypeScript, Tailwind, MySQL, n8n Automation,
-  CloudPanel, cPanel. Keep this list honest — it was trimmed to remove "Supabase" when the
-  database-backed admin area was removed; don't add a technology here unless it's actually
-  used somewhere in the live app.
+  `STACK` array) currently read PHP Laravel, Python, FastAPI, PostgreSQL, React, TypeScript,
+  Tailwind, MySQL, n8n Automation, CloudPanel, cPanel. Keep this list honest — it was trimmed to
+  remove "Supabase" when the database-backed admin area was removed; don't add a technology here
+  unless it's actually used somewhere in the live app. The bio prose directly below the chips names
+  a narrower set, so keep the two consistent.
 - **Taskbar tabs are icon-only.** Each open section renders in `Taskbar.tsx` as a 32×32 square
   showing nothing but its `SectionIcon`. The filename (`about.sys`, `experience.log`, ...) lives
   on `title` and `aria-label`, and the hover-preview panel still prints it in its header, so
@@ -129,7 +136,7 @@ Keep new UI consistent with this system rather than introducing one-off styling.
   extend the `floating` branch instead.
 - **Reusable OS chrome** lives in `src/Components/os/`: `MenuBar`, `Taskbar`, `DesktopRail`,
   `TaskSwitcher`, `MobileNavPanel`, `ContextMenu`, `MinimizeGhost`, `BootScreen`, `WindowChrome`,
-  the full-screen `ChessGame`, `Solitaire`, and `Pinball` apps, and shared
+  `Inspector`, `DevicePreview`, the full-screen `ChessGame`, `Solitaire`, and `Pinball` apps, and shared
   icon primitives in `OsIcons.tsx` (`LogoMark`, `WinControls`, `GridIcon`, `CloseGlyph`,
   `SectionIcon`, `ChessIcon`, `SolitaireIcon`, `PinballIcon`).
   Section state (open/closed/minimized/active, plus floating position/size/z-order/maximized via
@@ -207,6 +214,11 @@ apps: `chess.app`, `solitaire.app`, and `pinball.app`.
   snap to an 84x77 grid on release, remain inside the menu-bar/taskbar-safe viewport, and swap
   places when one is dropped into an occupied cell. Positions persist in `localStorage` under
   `marvinmosicoos-desktop-icons` and are clamped again when the viewport changes size.
+- **The default layout wraps into a second column** once the viewport is too short for one
+  (`iconsPerColumn`) — under about 751px, which is an ordinary laptop window. Before that it
+  didn't: everything past the bottom clamped onto the same last row, so `pinball.app` ended up
+  stacked under `solitaire.app`. Only icons the user has never moved reflow; anything with a
+  stored position keeps it.
 - **Removing icons** uses the shared `ContextMenu.tsx`: right-click an icon and choose
   `Remove from desktop`. Hidden keys persist under `marvinmosicoos-desktop-hidden`; removing an
   icon only hides its shortcut and does not close or delete the underlying section/app.
@@ -214,6 +226,35 @@ apps: `chess.app`, `solitaire.app`, and `pinball.app`.
   positions` returns visible icons to their default column, while `Restore removed apps` makes
   every hidden icon visible again. Native context menus are left intact inside windows and on
   interactive controls.
+- **`Inspect element`** sits last in that menu, where a browser puts it, and opens
+  `Inspector.tsx` — a devtools-shaped pane docked to the right edge, full height, with a picker
+  toggle, `elements` / `computed` tabs, and a breadcrumb of the selected node's ancestry. The
+  `elements` tab is a real DOM tree walked from `document.body`: rows expand, hovering one
+  highlights that element on the page, clicking one selects it, and the path to the picked node
+  is open by default so a pick always reveals itself.
+- **The inspector deliberately does not bind `Ctrl+Shift+I`.** That belongs to the browser's own
+  devtools and hijacking it, even with `preventDefault`, takes away the real console. The pane
+  is opened from the context menu only. Nothing here can launch the browser's devtools either —
+  no web API exposes them, by design — so the in-app tools stand alongside them, never replace
+  them.
+- **`Device preview`** sits just above `Inspect element` in the same menu and opens
+  `DevicePreview.tsx`: device presets, editable width/height, rotate, a route picker (`/`,
+  `/other-projects`, `/resume`), and reload. The page renders in a same-origin iframe at its
+  true pixel size and is scaled to fit with a CSS transform, so `window.innerWidth`, `matchMedia`,
+  and every Tailwind breakpoint inside the frame see the real device width — scaling the iframe
+  element itself instead would report the stage's width and defeat the whole point. Resizing the
+  frame doesn't reload it, so a layout can be watched reflowing live.
+- **The picker is a mode, not a pin.** It starts armed (like a browser's "Inspect element"),
+  follows the pointer, and disarms on click so the page is usable again; the toolbar's picker
+  button re-arms it and `Escape` steps back out — disarm first, then close. While armed it
+  swallows pointer events in the capture phase, otherwise a click would open a window or start
+  an icon drag instead of selecting. The pane overlays the desktop rather than resizing it: the
+  canvas drives window clamping, so narrowing it would rewrite saved window positions as a side
+  effect of merely opening the inspector.
+- The inspector runs at every desktop width, so the desktop menu is gated on
+  `DESKTOP_BREAKPOINT` while the two icon actions above stay `2xl`+ (`DesktopRail` reads that
+  breakpoint in JS rather than hiding itself with a CSS class, so the menu can still render
+  below it).
 - **Mobile navigation** is a left-side app panel with filename/display-name search. It includes
   the portfolio sections, resume, and all three games, and clears its query whenever it closes.
   Desktop icon placement and hiding intentionally apply only to the `2xl` desktop surface.
@@ -228,10 +269,42 @@ or `Escape`.
   highlights legal destinations, reports check/checkmate/draw states, supports promotion choices,
   undo, and a new game. Closing and reopening preserves the current board until `New game` is used.
 - **Solitaire** (`Solitaire.tsx`) implements draw-one Klondike with selectable card runs,
-  foundations, stock recycling, undo, win detection, and a new shuffled game.
+  foundations, stock recycling, undo, win detection, and a new shuffled game. Its seven columns
+  can't wrap, so card size is computed from the viewport (`metricsFor`) rather than fixed:
+  full-size at 496px and up, scaled down below that so a phone gets a whole board instead of a
+  sideways scroll. Card, gap, stack-offset, and font sizes all come from that one function —
+  don't reintroduce fixed card constants.
 - **Pinball** (`Pinball.tsx`) is a canvas-based three-ball game with bumpers, collision physics,
   scoring, touch controls, and keyboard controls. Use Left/Right Arrow or `A`/`D` for the flippers
-  and Space to launch. Opening the app starts a fresh game.
+  and Space to launch. Opening the app starts a fresh game. Physics runs one step per animation
+  frame in a fixed 360×600 logical space that CSS then scales to fit, so every constant below is in
+  logical units per frame — not pixels, and not per second.
+
+### Pinball physics
+
+The tuning constants at the top of `Pinball.tsx` are derived from each other, not picked
+independently. Four of them are load-bearing:
+
+- **A falling ball is capped at `DESCENT_MAX_SPEED` (4).** Free fall on its own settles near
+  `GRAVITY * DAMPING / (1 - DAMPING)` ≈ 7.4 and a bumper kick pushes it past 9 — fast enough that
+  the flippers can't be aimed in time. The cap scales the whole velocity vector, so the ball still
+  steers and accelerates normally and only its pace changes.
+- **A bumper or flipper hit lifts the cap for `FULL_SPEED_FRAMES` (40)**, so the shot coming off a
+  hit plays at full speed. Below `REACTION_ZONE_Y` (420) the cap applies anyway, window or not:
+  without that qualifier a ball kicked off a bumper reaches the flippers still doing ~11 and the
+  slow descent buys the player nothing.
+- **`FLIPPER_KICK` is 7 because the descent is capped.** The flipper receives a slower ball now, so
+  more of the return shot has to come from the flipper itself; at the old value of 5 a good catch no
+  longer carried back up to the bumpers.
+- **Movement is substepped, and so is the flipper's swing.** Every surface is a zero-thickness
+  segment and one frame at `MAX_SPEED` is longer than the ball's diameter, so a single
+  move-then-test step can leave the ball on the far side of a wall, where the collision resolver
+  settles it — the ball ends up outside the table. The flipper is the same bug in reverse and the
+  more common one: it sweeps ~22px per frame against the ball's ~4, so it crossed the ball rather
+  than the ball crossing it, dropping the ball straight into the drain. Both are advanced in
+  sub-radius slices (`MAX_STEP`, `FLIPPER_SWEEP_STEPS`), with a hard clamp to the table as a
+  backstop. Don't collapse that loop back into a single move — it is the fix, not an optimization
+  waiting to be undone.
 
 ## Favicon & App Icons
 

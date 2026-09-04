@@ -12,6 +12,8 @@ import Taskbar from "./os/Taskbar";
 import TaskSwitcher from "./os/TaskSwitcher";
 import MobileNavPanel from "./os/MobileNavPanel";
 import DesktopRail from "./os/DesktopRail";
+import Inspector from "./os/Inspector";
+import DevicePreview from "./os/DevicePreview";
 import ChessGame from "./os/ChessGame";
 import Solitaire from "./os/Solitaire";
 import Pinball from "./os/Pinball";
@@ -52,6 +54,8 @@ const Content: React.FC = () => {
   const [chessOpen, setChessOpen] = useState(false);
   const [solitaireOpen, setSolitaireOpen] = useState(false);
   const [pinballOpen, setPinballOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [devicePreviewOpen, setDevicePreviewOpen] = useState(false);
   const [desktopMenuAt, setDesktopMenuAt] = useState<{ x: number; y: number } | null>(null);
   const [closedSections, setClosedSections] = useState<Set<SectionKey>>(new Set());
   const [minimizedSections, setMinimizedSections] = useState<Set<SectionKey>>(new Set());
@@ -124,6 +128,17 @@ const Content: React.FC = () => {
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
+
+  // Stable identity: Inspector re-registers its capture-phase listeners
+  // whenever this changes.
+  const closeInspector = useCallback(() => setInspectorOpen(false), []);
+  const closeDevicePreview = useCallback(() => setDevicePreviewOpen(false), []);
+  // One at a time: the inspector's picker would otherwise keep swallowing
+  // pointer events over the preview it's sitting on top of.
+  const openDevicePreview = useCallback(() => {
+    setInspectorOpen(false);
+    setDevicePreviewOpen(true);
+  }, []);
 
   const closeSection = useCallback((section: SectionKey) => {
     setClosedSections((prev) => {
@@ -234,9 +249,11 @@ const Content: React.FC = () => {
   // and "window content" since floating windows render inside the same
   // canvas div, so this has to be decided from the click target, not layout.
   const handleDesktopContextMenu = (e: React.MouseEvent) => {
-    // Only the 2xl+ desktop rail has icons to reset — below that, leave the
-    // browser's native menu alone rather than swallowing it for nothing.
-    if (!hasRailGutter) return;
+    // Desktop widths only. The menu's icon actions still need the 2xl rail
+    // (DesktopRail drops them below that), but "Inspect element" applies
+    // anywhere there's a real desktop, so the gate is the desktop breakpoint
+    // rather than the rail's.
+    if (!isDesktop) return;
     const target = e.target as HTMLElement;
     if (target.closest("[data-section], button, a, input, textarea, select")) return;
     e.preventDefault();
@@ -296,6 +313,8 @@ const Content: React.FC = () => {
           onOpenChess={() => setChessOpen(true)}
           onOpenSolitaire={() => setSolitaireOpen(true)}
           onOpenPinball={() => setPinballOpen(true)}
+          onOpenInspector={() => setInspectorOpen(true)}
+          onOpenDevicePreview={openDevicePreview}
           desktopMenuAt={desktopMenuAt}
           onCloseDesktopMenu={() => setDesktopMenuAt(null)}
         />
@@ -381,6 +400,9 @@ const Content: React.FC = () => {
           onOpenMenu={() => setNavMenuOpen(true)}
           onOpenSwitcher={() => setSwitcherOpen(true)}
         />
+
+        <Inspector darkMode={darkMode} open={inspectorOpen} onClose={closeInspector} />
+        <DevicePreview darkMode={darkMode} open={devicePreviewOpen} onClose={closeDevicePreview} />
 
         {minimizeAnim && (
           <MinimizeGhost

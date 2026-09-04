@@ -93,7 +93,7 @@ const BootScreen: React.FC<BootScreenProps> = ({ darkMode }) => {
           {BOOT_LINES.map((line) => (
             <div key={line} className="flex justify-between">
               <span style={{ color: theme.textMuted }}>
-                <span style={{ color: "#7FB88A" }}>[ok]</span> {line}
+                <span style={{ color: theme.success }}>[ok]</span> {line}
               </span>
               <span style={{ color: theme.textDim }}>done</span>
             </div>

@@ -186,7 +186,13 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
         </div>
       </div>
 
-      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} title="Technology Details" modalData={modalData} />
+      <Modal
+        show={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Technology Details"
+        modalData={modalData}
+        darkMode={darkMode}
+      />
     </>
   );
 };

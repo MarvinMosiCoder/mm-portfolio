@@ -228,6 +228,7 @@ const WindowChrome: React.FC<WindowChromeProps> = ({
             </span>
             <WinControls
               dim={!active}
+              dangerColor={theme.danger}
               onMinimize={onMinimize}
               minimizeLabel={`Minimize ${title}`}
               onMaximize={handleMaximize}

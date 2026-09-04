@@ -17,6 +17,17 @@ export interface OsTheme {
   taskbar: string;
   menubar: string;
   shadow: string;
+  // Translucent overlay for hover states. Deliberately not a solid color —
+  // it has to read as "raised" on top of any surface it lands on (the
+  // desktop's grid background, the taskbar, a panel), which a fixed hex
+  // can't do without matching one of them exactly and vanishing.
+  hover: string;
+  // A fill that must stay visually distinct from `bg` when the two sit
+  // directly next to each other (chess squares, alternating rows). `panel`
+  // is too close to `bg` in dark mode to work for that.
+  surfaceAlt: string;
+  success: string;
+  danger: string;
 }
 
 export const DARK_OS_THEME: OsTheme = {
@@ -38,6 +49,10 @@ export const DARK_OS_THEME: OsTheme = {
   taskbar: "#101317",
   menubar: "#101317",
   shadow: "rgba(0,0,0,0.55)",
+  hover: "rgba(255,255,255,0.08)",
+  surfaceAlt: "#39404B",
+  success: "#7FB88A",
+  danger: "#E86A6A",
 };
 
 export const LIGHT_OS_THEME: OsTheme = {
@@ -59,6 +74,10 @@ export const LIGHT_OS_THEME: OsTheme = {
   taskbar: "#F5F6F8",
   menubar: "#F5F6F8",
   shadow: "rgba(20,24,30,0.18)",
+  hover: "rgba(20,24,30,0.07)",
+  surfaceAlt: "#BCC4CE",
+  success: "#3F7A4E",
+  danger: "#C23B3B",
 };
 
 export const getOsTheme = (darkMode: boolean): OsTheme =>

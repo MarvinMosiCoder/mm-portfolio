@@ -30,9 +30,38 @@ const WALL_RESTITUTION = 0.6;
 const BUMPER_RESTITUTION = 0.75;
 const BUMPER_KICK = 3;
 const FLIPPER_RESTITUTION = 0.5;
-const FLIPPER_KICK = 5;
+// Raised alongside the descent cap: a ball now arrives at the flipper slower,
+// so more of the return shot has to come from the flipper itself — at the old
+// value a good catch no longer carried back up to the bumpers.
+const FLIPPER_KICK = 7;
 const FLIPPER_EASE = 0.35;
 const START_BALLS = 3;
+
+// A falling ball is the only part of a shot the player has to react to, so the
+// descent is held to a much lower cap than the rest of the table. Direction is
+// untouched — the ball still steers and accelerates normally, it just tops out
+// slow enough to be read and caught. Hitting a bumper or a flipper lifts the
+// cap for FULL_SPEED_FRAMES so the shot coming off that hit plays at full
+// pace; the cap returns as soon as that window ends and the ball is falling
+// again. Free fall alone settles near GRAVITY*DAMPING/(1-DAMPING) ≈ 7.4, so
+// the cap is what slows an ordinary drop, not only kicked balls.
+const DESCENT_MAX_SPEED = 4;
+const FULL_SPEED_FRAMES = 40;
+// ...but never in the approach to the flippers. Below this line the cap always
+// applies to a falling ball, window or not, so a ball is never handed to the
+// player at a speed they cannot react to — 125px at the capped speed is a good
+// half-second of reaction time.
+const REACTION_ZONE_Y = 420;
+
+// Every surface on this table is a zero-thickness segment, and one frame of
+// travel at MAX_SPEED (11.5) is longer than the ball's diameter — so a single
+// move-then-test step can put the ball clean through a wall, which the
+// resolver then settles on the far side: the ball leaves the table. Movement
+// is sliced into steps no longer than this instead, so no surface is crossed
+// between two tests. A swinging flipper is the same hazard in reverse (it can
+// sweep across a resting ball), so its arc is stepped along with the ball.
+const MAX_STEP = BALL_RADIUS * 0.6;
+const FLIPPER_SWEEP_STEPS = 10;
 
 // Table geometry lives in a fixed 360x600 logical space; the canvas is scaled
 // to fit the viewport via CSS, physics always runs in these logical units.
@@ -93,6 +122,12 @@ const RIGHT_ACTIVE_TIP = { x: 181, y: 504 };
 const LAUNCH_POS = { x: 321, y: 535 };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+type Point = { x: number; y: number };
+const tipAt = (rest: Point, active: Point, frac: number): Point => ({
+  x: lerp(rest.x, active.x, frac),
+  y: lerp(rest.y, active.y, frac),
+});
 
 interface Ball {
   x: number;
@@ -157,6 +192,8 @@ const Pinball: React.FC<PinballProps> = ({ darkMode, open, onClose }) => {
   const gameOverRef = useRef(false);
   const ballsRef = useRef(START_BALLS);
   const flippersRef = useRef({ leftFrac: 0, rightFrac: 0, leftActive: false, rightActive: false });
+  // Frames of unrestricted speed left over from the last bumper/flipper hit.
+  const fullSpeedRef = useRef(0);
   const rafRef = useRef<number | null>(null);
 
   const [score, setScore] = useState(0);
@@ -169,6 +206,7 @@ const Pinball: React.FC<PinballProps> = ({ darkMode, open, onClose }) => {
     gameOverRef.current = false;
     ballsRef.current = START_BALLS;
     flippersRef.current = { leftFrac: 0, rightFrac: 0, leftActive: false, rightActive: false };
+    fullSpeedRef.current = 0;
     setScore(0);
     setBalls(START_BALLS);
     setGameOver(false);
@@ -229,34 +267,83 @@ const Pinball: React.FC<PinballProps> = ({ darkMode, open, onClose }) => {
       const ball = ballRef.current;
       const flip = flippersRef.current;
 
+      const prevLeftFrac = flip.leftFrac;
+      const prevRightFrac = flip.rightFrac;
       flip.leftFrac += ((flip.leftActive ? 1 : 0) - flip.leftFrac) * FLIPPER_EASE;
       flip.rightFrac += ((flip.rightActive ? 1 : 0) - flip.rightFrac) * FLIPPER_EASE;
-      const leftTip = { x: lerp(LEFT_REST_TIP.x, LEFT_ACTIVE_TIP.x, flip.leftFrac), y: lerp(LEFT_REST_TIP.y, LEFT_ACTIVE_TIP.y, flip.leftFrac) };
-      const rightTip = { x: lerp(RIGHT_REST_TIP.x, RIGHT_ACTIVE_TIP.x, flip.rightFrac), y: lerp(RIGHT_REST_TIP.y, RIGHT_ACTIVE_TIP.y, flip.rightFrac) };
+      const leftTip = tipAt(LEFT_REST_TIP, LEFT_ACTIVE_TIP, flip.leftFrac);
+      const rightTip = tipAt(RIGHT_REST_TIP, RIGHT_ACTIVE_TIP, flip.rightFrac);
 
       if (!waitingRef.current && !gameOverRef.current) {
+        if (fullSpeedRef.current > 0) fullSpeedRef.current -= 1;
+
         ball.vy += GRAVITY;
         ball.vx *= DAMPING;
         ball.vy *= DAMPING;
-        const speed = Math.hypot(ball.vx, ball.vy);
-        if (speed > MAX_SPEED) {
-          ball.vx = (ball.vx / speed) * MAX_SPEED;
-          ball.vy = (ball.vy / speed) * MAX_SPEED;
-        }
-        ball.x += ball.vx;
-        ball.y += ball.vy;
 
-        for (const [ax, ay, bx, by] of WALLS) collideSegment(ball, ax, ay, bx, by, WALL_RESTITUTION, 0);
-        for (const [ax, ay, bx, by] of GUIDES) collideSegment(ball, ax, ay, bx, by, WALL_RESTITUTION, 0);
-        collideSegment(ball, LEFT_PIVOT.x, LEFT_PIVOT.y, leftTip.x, leftTip.y, FLIPPER_RESTITUTION, flip.leftActive ? FLIPPER_KICK : 0);
-        collideSegment(ball, RIGHT_PIVOT.x, RIGHT_PIVOT.y, rightTip.x, rightTip.y, FLIPPER_RESTITUTION, flip.rightActive ? FLIPPER_KICK : 0);
-        for (const b of BUMPERS) {
-          if (collideCircle(ball, b.x, b.y, b.r, BUMPER_RESTITUTION, BUMPER_KICK)) setScore((s) => s + 100);
+        const descending = ball.vy > 0 && (fullSpeedRef.current === 0 || ball.y > REACTION_ZONE_Y);
+        const limit = descending ? DESCENT_MAX_SPEED : MAX_SPEED;
+        const speed = Math.hypot(ball.vx, ball.vy);
+        if (speed > limit) {
+          ball.vx = (ball.vx / speed) * limit;
+          ball.vy = (ball.vy / speed) * limit;
+        }
+
+        const travel = Math.hypot(ball.vx, ball.vy);
+        const sweep = Math.abs(flip.leftFrac - prevLeftFrac) + Math.abs(flip.rightFrac - prevRightFrac);
+        const substeps = Math.max(1, Math.ceil(travel / MAX_STEP), Math.ceil(sweep * FLIPPER_SWEEP_STEPS));
+        // A bumper resolved on two substeps of the same frame is one hit, not
+        // two — score it once.
+        const scored = new Set<number>();
+
+        for (let i = 0; i < substeps; i += 1) {
+          ball.x += ball.vx / substeps;
+          ball.y += ball.vy / substeps;
+
+          const t = (i + 1) / substeps;
+          const lTip = tipAt(LEFT_REST_TIP, LEFT_ACTIVE_TIP, lerp(prevLeftFrac, flip.leftFrac, t));
+          const rTip = tipAt(RIGHT_REST_TIP, RIGHT_ACTIVE_TIP, lerp(prevRightFrac, flip.rightFrac, t));
+
+          for (const [ax, ay, bx, by] of WALLS) collideSegment(ball, ax, ay, bx, by, WALL_RESTITUTION, 0);
+          for (const [ax, ay, bx, by] of GUIDES) collideSegment(ball, ax, ay, bx, by, WALL_RESTITUTION, 0);
+          if (collideSegment(ball, LEFT_PIVOT.x, LEFT_PIVOT.y, lTip.x, lTip.y, FLIPPER_RESTITUTION, flip.leftActive ? FLIPPER_KICK : 0)) {
+            fullSpeedRef.current = FULL_SPEED_FRAMES;
+          }
+          if (collideSegment(ball, RIGHT_PIVOT.x, RIGHT_PIVOT.y, rTip.x, rTip.y, FLIPPER_RESTITUTION, flip.rightActive ? FLIPPER_KICK : 0)) {
+            fullSpeedRef.current = FULL_SPEED_FRAMES;
+          }
+          for (let b = 0; b < BUMPERS.length; b += 1) {
+            const bumper = BUMPERS[b];
+            if (collideCircle(ball, bumper.x, bumper.y, bumper.r, BUMPER_RESTITUTION, BUMPER_KICK)) {
+              fullSpeedRef.current = FULL_SPEED_FRAMES;
+              if (!scored.has(b)) {
+                scored.add(b);
+                setScore((sc) => sc + 100);
+              }
+            }
+          }
+        }
+
+        // Backstop. Substepping stops the ball crossing a surface between
+        // tests, but a flipper swinging into a ball already pinned against a
+        // wall can still squeeze it out sideways. Keep it on the table rather
+        // than letting it sail off and strand the game with no ball in play.
+        if (ball.x < BALL_RADIUS) {
+          ball.x = BALL_RADIUS;
+          ball.vx = Math.abs(ball.vx) * WALL_RESTITUTION;
+        } else if (ball.x > TABLE_W - BALL_RADIUS) {
+          ball.x = TABLE_W - BALL_RADIUS;
+          ball.vx = -Math.abs(ball.vx) * WALL_RESTITUTION;
+        }
+        if (ball.y < BALL_RADIUS) {
+          ball.y = BALL_RADIUS;
+          ball.vy = Math.abs(ball.vy) * WALL_RESTITUTION;
         }
 
         if (ball.y - BALL_RADIUS > TABLE_H) {
           ballsRef.current -= 1;
           setBalls(ballsRef.current);
+          fullSpeedRef.current = 0;
           if (ballsRef.current <= 0) {
             gameOverRef.current = true;
             setGameOver(true);

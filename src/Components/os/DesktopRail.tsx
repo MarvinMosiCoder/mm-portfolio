@@ -6,6 +6,7 @@ import { ChessIcon, PinballIcon, SectionIcon, SolitaireIcon } from "./OsIcons";
 import ContextMenu from "./ContextMenu";
 import { SECTIONS, SECTION_META, SectionKey } from "./constants";
 import { IconPosition, useDesktopIconLayout } from "../../Hooks/useDesktopIconLayout";
+import { useMediaQuery } from "../../Hooks/useMediaQuery";
 
 interface DesktopRailProps {
   darkMode: boolean;
@@ -16,6 +17,8 @@ interface DesktopRailProps {
   onOpenChess: () => void;
   onOpenSolitaire: () => void;
   onOpenPinball: () => void;
+  onOpenInspector: () => void;
+  onOpenDevicePreview: () => void;
   desktopMenuAt: { x: number; y: number } | null;
   onCloseDesktopMenu: () => void;
 }
@@ -36,9 +39,12 @@ interface DraggableIconProps {
   previewPosition: (pos: IconPosition) => IconPosition;
   onActivate: () => void;
   onContextMenu: (x: number, y: number) => void;
-  boxStyle: React.CSSProperties;
+  // Taken as functions of the hover state rather than plain style objects:
+  // hover is owned here (the icon knows when the pointer is on it), while the
+  // colors it resolves to belong to the rail's shared icon styling.
+  boxStyle: (hovered: boolean) => React.CSSProperties;
   label: string;
-  labelColor: string;
+  labelColor: (hovered: boolean) => string;
   icon: React.ReactNode;
 }
 
@@ -64,6 +70,7 @@ const DraggableIcon: React.FC<DraggableIconProps> = ({
   const dragRef = useRef<DragState | null>(null);
   const suppressClickRef = useRef(false);
   const [live, setLive] = useState<IconPosition | null>(null);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
@@ -140,6 +147,10 @@ const DraggableIcon: React.FC<DraggableIconProps> = ({
         type="button"
         onPointerDown={handlePointerDown}
         onClick={handleClick}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
         onContextMenu={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -160,10 +171,13 @@ const DraggableIcon: React.FC<DraggableIconProps> = ({
           filter: dragging ? `drop-shadow(0 12px 20px ${theme.shadow})` : undefined,
         }}
       >
-        <div className="flex items-center justify-center transition-colors" style={boxStyle}>
+        <div className="flex items-center justify-center transition-colors" style={boxStyle(hovered)}>
           {icon}
         </div>
-        <span className="os-mono text-[9px] tracking-wide whitespace-nowrap" style={{ color: labelColor }}>
+        <span
+          className="os-mono text-[9px] tracking-wide whitespace-nowrap transition-colors"
+          style={{ color: labelColor(hovered) }}
+        >
           {label}
         </span>
       </button>
@@ -180,6 +194,8 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
   onOpenChess,
   onOpenSolitaire,
   onOpenPinball,
+  onOpenInspector,
+  onOpenDevicePreview,
   desktopMenuAt,
   onCloseDesktopMenu,
 }) => {
@@ -188,15 +204,22 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
   const { getPosition, commitPosition, previewPosition, isHidden, hideIcon, restoreAll, resetPositions, hiddenCount } =
     useDesktopIconLayout(ICON_KEYS);
   const [iconMenu, setIconMenu] = useState<{ x: number; y: number; key: IconKey } | null>(null);
+  // The icons are a 2xl-only surface, but the desktop context menu below is
+  // not — it carries the inspector at every desktop width — so the breakpoint
+  // is read here instead of hiding the whole component with a CSS class.
+  const showIcons = useMediaQuery("(min-width: 1536px)");
 
-  const iconBox = (isActive: boolean, isClosed: boolean): React.CSSProperties => ({
+  const iconBox = (isActive: boolean, isClosed: boolean, hovered: boolean): React.CSSProperties => ({
     width: 40,
     height: 40,
-    border: `1px solid ${isActive ? theme.accent : theme.borderStrong}`,
-    background: isActive ? theme.accentSoft : "transparent",
-    color: isActive ? theme.text : theme.textMuted,
+    border: `1px solid ${isActive ? theme.accent : hovered ? theme.textDim : theme.borderStrong}`,
+    background: isActive ? theme.accentSoft : hovered ? theme.hover : "transparent",
+    color: isActive || hovered ? theme.text : theme.textMuted,
     opacity: isClosed ? 0.5 : 1,
   });
+
+  const iconLabelColor = (isActive: boolean, hovered: boolean) =>
+    isActive || hovered ? theme.text : theme.textMuted;
 
   const extraIcons: { key: ExtraKey; icon: React.ReactNode; label: string; onActivate: () => void }[] = [
     { key: "resume", icon: <FiFileText size={17} />, label: "resume.pdf", onActivate: () => navigate("/resume") },
@@ -206,44 +229,49 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
   ];
 
   return (
-    <div className="hidden 2xl:block">
-      {SECTIONS.map((section, index) => {
-        if (isHidden(section)) return null;
-        const isClosed = closedSections.has(section) || minimizedSections.has(section);
-        return (
-          <DraggableIcon
-            key={section}
-            theme={theme}
-            position={getPosition(section)}
-            onPositionChange={(pos) => commitPosition(section, pos)}
-            previewPosition={previewPosition}
-            onActivate={() => onNavigateSection(section)}
-            onContextMenu={(x, y) => setIconMenu({ x, y, key: section })}
-            boxStyle={iconBox(activeIndex === index, isClosed)}
-            icon={<SectionIcon section={section} size={17} />}
-            label={SECTION_META[section].file}
-            labelColor={activeIndex === index ? theme.text : theme.textMuted}
-          />
-        );
-      })}
+    <>
+      {showIcons && (
+        <>
+          {SECTIONS.map((section, index) => {
+            if (isHidden(section)) return null;
+            const isActive = activeIndex === index;
+            const isClosed = closedSections.has(section) || minimizedSections.has(section);
+            return (
+              <DraggableIcon
+                key={section}
+                theme={theme}
+                position={getPosition(section)}
+                onPositionChange={(pos) => commitPosition(section, pos)}
+                previewPosition={previewPosition}
+                onActivate={() => onNavigateSection(section)}
+                onContextMenu={(x, y) => setIconMenu({ x, y, key: section })}
+                boxStyle={(hovered) => iconBox(isActive, isClosed, hovered)}
+                icon={<SectionIcon section={section} size={17} />}
+                label={SECTION_META[section].file}
+                labelColor={(hovered) => iconLabelColor(isActive, hovered)}
+              />
+            );
+          })}
 
-      {extraIcons
-        .filter((item) => !isHidden(item.key))
-        .map((item) => (
-          <DraggableIcon
-            key={item.key}
-            theme={theme}
-            position={getPosition(item.key)}
-            onPositionChange={(pos) => commitPosition(item.key, pos)}
-            previewPosition={previewPosition}
-            onActivate={item.onActivate}
-            onContextMenu={(x, y) => setIconMenu({ x, y, key: item.key })}
-            boxStyle={iconBox(false, false)}
-            icon={item.icon}
-            label={item.label}
-            labelColor={theme.textMuted}
-          />
-        ))}
+          {extraIcons
+            .filter((item) => !isHidden(item.key))
+            .map((item) => (
+              <DraggableIcon
+                key={item.key}
+                theme={theme}
+                position={getPosition(item.key)}
+                onPositionChange={(pos) => commitPosition(item.key, pos)}
+                previewPosition={previewPosition}
+                onActivate={item.onActivate}
+                onContextMenu={(x, y) => setIconMenu({ x, y, key: item.key })}
+                boxStyle={(hovered) => iconBox(false, false, hovered)}
+                icon={item.icon}
+                label={item.label}
+                labelColor={(hovered) => iconLabelColor(false, hovered)}
+              />
+            ))}
+        </>
+      )}
 
       {desktopMenuAt && (
         <ContextMenu
@@ -252,12 +280,19 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
           y={desktopMenuAt.y}
           onClose={onCloseDesktopMenu}
           items={[
-            { label: "Reset icon positions", onSelect: resetPositions },
-            {
-              label: hiddenCount > 0 ? `Restore removed apps (${hiddenCount})` : "Restore removed apps",
-              onSelect: restoreAll,
-              disabled: hiddenCount === 0,
-            },
+            ...(showIcons
+              ? [
+                  { label: "Reset icon positions", onSelect: resetPositions },
+                  {
+                    label: hiddenCount > 0 ? `Restore removed apps (${hiddenCount})` : "Restore removed apps",
+                    onSelect: restoreAll,
+                    disabled: hiddenCount === 0,
+                  },
+                ]
+              : []),
+            { label: "Device preview", onSelect: onOpenDevicePreview },
+            // Always last, the way a browser's own context menu orders it.
+            { label: "Inspect element", onSelect: onOpenInspector },
           ]}
         />
       )}
@@ -270,7 +305,7 @@ const DesktopRail: React.FC<DesktopRailProps> = ({
           items={[{ label: "Remove from desktop", onSelect: () => hideIcon(iconMenu.key) }]}
         />
       )}
-    </div>
+    </>
   );
 };
 

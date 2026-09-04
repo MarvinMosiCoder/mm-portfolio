@@ -84,7 +84,7 @@ const Contact: React.FC<ContactProps> = ({ darkMode = true }) => {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer theme={darkMode ? "dark" : "light"} />
       <div className="flex flex-col md:flex-row gap-6 md:gap-8">
         {/* compose form */}
         <div className="flex-1 min-w-0">
@@ -214,11 +214,11 @@ function Field({
         <span style={{ color: theme.accent }}>&gt;</span>
         {label}
       </div>
-      <div className="px-3.5 py-3" style={{ border: `1px solid ${error ? "#e05d5d" : theme.border}`, background: theme.bg }}>
+      <div className="px-3.5 py-3" style={{ border: `1px solid ${error ? theme.danger : theme.border}`, background: theme.bg }}>
         {children}
       </div>
       {error && (
-        <p className="os-mono mt-1 text-xs" style={{ color: "#e05d5d" }}>
+        <p className="os-mono mt-1 text-xs" style={{ color: theme.danger }}>
           {error}
         </p>
       )}

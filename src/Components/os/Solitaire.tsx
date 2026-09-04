@@ -29,14 +29,45 @@ const SUIT_GLYPH: Record<Suit, string> = { spades: "♠", hearts: "♥", diamond
 const RED_SUITS = new Set<Suit>(["hearts", "diamonds"]);
 const RANK_LABEL: Record<number, string> = { 1: "A", 11: "J", 12: "Q", 13: "K" };
 const rankLabel = (rank: number) => RANK_LABEL[rank] ?? String(rank);
-// Reuses the same red already used for form-error text elsewhere, so card
-// suits stay inside the app's existing palette instead of a one-off color.
-const RED = "#e05d5d";
 
+// A Klondike board is seven columns wide and can't wrap, so on a phone the
+// only choices are "scroll sideways for every move" or "shrink the cards".
+// These are the full-size desktop numbers; `metricsFor` scales them down to
+// whatever width is actually available and never past it.
 const CARD_W = 56;
-const CARD_H = 78;
-const STACK_OFFSET = 24;
-const BOARD_WIDTH = CARD_W * 7 + 12 * 6;
+const CARD_ASPECT = 78 / 56;
+const BOARD_PADDING = 32;
+
+interface Metrics {
+  cardW: number;
+  cardH: number;
+  gap: number;
+  stackOffset: number;
+  boardWidth: number;
+  rankFont: number;
+  suitFont: number;
+  slotFont: number;
+}
+
+function metricsFor(viewportWidth: number): Metrics {
+  const available = Math.max(224, viewportWidth - BOARD_PADDING);
+  const gap = available < 420 ? 6 : 12;
+  const cardW = Math.min(CARD_W, Math.floor((available - gap * 6) / 7));
+  const cardH = Math.round(cardW * CARD_ASPECT);
+  return {
+    cardW,
+    cardH,
+    gap,
+    // How far each stacked card peeks out from under the one above it. Tied
+    // to card height so a shrunken column stays proportional instead of
+    // turning into a solid block of overlapping cards.
+    stackOffset: Math.max(13, Math.round(cardH * 0.31)),
+    boardWidth: cardW * 7 + gap * 6,
+    rankFont: Math.max(9, Math.round(cardW * 0.2)),
+    suitFont: Math.max(13, Math.round(cardW * 0.36)),
+    slotFont: Math.max(12, Math.round(cardW * 0.32)),
+  };
+}
 
 function shuffledDeck(): Card[] {
   const deck: Card[] = [];
@@ -91,11 +122,12 @@ function canStackFoundation(moving: Card, pile: Card[]): boolean {
 
 const CardView: React.FC<{
   theme: OsTheme;
+  metrics: Metrics;
   card: Card;
   selected: boolean;
   onClick: (e: React.MouseEvent) => void;
   style?: React.CSSProperties;
-}> = ({ theme, card, selected, onClick, style }) => {
+}> = ({ theme, metrics, card, selected, onClick, style }) => {
   const isRed = RED_SUITS.has(card.suit);
   return (
     <button
@@ -105,8 +137,8 @@ const CardView: React.FC<{
       className="flex flex-col items-start p-1 text-left"
       style={{
         position: "absolute",
-        width: CARD_W,
-        height: CARD_H,
+        width: metrics.cardW,
+        height: metrics.cardH,
         background: card.faceUp ? theme.panel : theme.borderStrong,
         border: `1px solid ${selected ? theme.accent : theme.borderStrong}`,
         boxShadow: selected ? `0 0 0 2px ${theme.accent}` : undefined,
@@ -115,11 +147,17 @@ const CardView: React.FC<{
     >
       {card.faceUp && (
         <>
-          <span className="os-mono text-[11px] leading-none" style={{ color: isRed ? RED : theme.text }}>
+          <span
+            className="os-mono leading-none"
+            style={{ color: isRed ? theme.danger : theme.text, fontSize: metrics.rankFont }}
+          >
             {rankLabel(card.rank)}
             {SUIT_GLYPH[card.suit]}
           </span>
-          <span className="flex flex-1 w-full items-center justify-center" style={{ color: isRed ? RED : theme.text, fontSize: 20 }}>
+          <span
+            className="flex w-full flex-1 items-center justify-center"
+            style={{ color: isRed ? theme.danger : theme.text, fontSize: metrics.suitFont }}
+          >
             {SUIT_GLYPH[card.suit]}
           </span>
         </>
@@ -130,13 +168,14 @@ const CardView: React.FC<{
 
 const SlotView: React.FC<{
   theme: OsTheme;
+  metrics: Metrics;
   card?: Card;
   faceDown?: boolean;
   placeholder?: string;
   selected?: boolean;
   onClick: () => void;
   ariaLabel: string;
-}> = ({ theme, card, faceDown, placeholder, selected, onClick, ariaLabel }) => {
+}> = ({ theme, metrics, card, faceDown, placeholder, selected, onClick, ariaLabel }) => {
   const isRed = card && RED_SUITS.has(card.suit);
   return (
     <button
@@ -145,21 +184,24 @@ const SlotView: React.FC<{
       aria-label={ariaLabel}
       className="flex shrink-0 items-center justify-center"
       style={{
-        width: CARD_W,
-        height: CARD_H,
+        width: metrics.cardW,
+        height: metrics.cardH,
         border: `1px solid ${selected ? theme.accent : theme.border}`,
         background: card ? (faceDown ? theme.borderStrong : theme.panel) : "transparent",
         boxShadow: selected ? `0 0 0 2px ${theme.accent}` : undefined,
       }}
     >
       {card && !faceDown && (
-        <span className="os-mono" style={{ color: isRed ? RED : theme.text, fontSize: 18 }}>
+        <span
+          className="os-mono"
+          style={{ color: isRed ? theme.danger : theme.text, fontSize: metrics.slotFont }}
+        >
           {rankLabel(card.rank)}
           {SUIT_GLYPH[card.suit]}
         </span>
       )}
       {!card && placeholder && (
-        <span className="os-mono text-lg" style={{ color: theme.textDim }}>
+        <span className="os-mono" style={{ color: theme.textDim, fontSize: metrics.slotFont }}>
           {placeholder}
         </span>
       )}
@@ -172,6 +214,20 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
   const [state, setState] = useState<GameState>(() => newGameState());
   const [history, setHistory] = useState<GameState[]>([]);
   const [selected, setSelected] = useState<Source | null>(null);
+  const [viewportWidth, setViewportWidth] = useState<number>(() =>
+    typeof window === "undefined" ? 1024 : window.innerWidth
+  );
+  const metrics = metricsFor(viewportWidth);
+
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -309,8 +365,8 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
         className="flex items-center justify-between px-4 shrink-0"
         style={{ height: 52, borderBottom: `1px solid ${theme.border}`, background: theme.menubar }}
       >
-        <div className="flex items-center gap-2">
-          <span className="os-mono text-sm font-semibold" style={{ color: theme.text }}>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="os-mono truncate text-sm font-semibold" style={{ color: theme.text }}>
             solitaire.app
           </span>
           {won && (
@@ -322,11 +378,11 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={newGame}
-            className="os-mono text-xs px-2.5 h-8 border"
+            className="os-mono text-xs px-2 sm:px-2.5 h-8 border"
             style={{ borderColor: theme.border, color: theme.textMuted }}
           >
             New game
@@ -335,7 +391,7 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
             type="button"
             onClick={undo}
             disabled={history.length === 0}
-            className="os-mono text-xs px-2.5 h-8 border disabled:opacity-40"
+            className="os-mono text-xs px-2 sm:px-2.5 h-8 border disabled:opacity-40"
             style={{ borderColor: theme.border, color: theme.textMuted }}
           >
             Undo
@@ -353,10 +409,11 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
       </div>
 
       <div className="flex-1 overflow-auto p-4">
-        <div className="mx-auto" style={{ width: BOARD_WIDTH }}>
-          <div className="flex gap-3 mb-6">
+        <div className="mx-auto" style={{ width: metrics.boardWidth }}>
+          <div className="flex mb-6" style={{ gap: metrics.gap }}>
             <SlotView
               theme={theme}
+              metrics={metrics}
               card={state.stock[state.stock.length - 1]}
               faceDown
               placeholder={state.stock.length === 0 ? "↺" : undefined}
@@ -365,6 +422,7 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
             />
             <SlotView
               theme={theme}
+              metrics={metrics}
               card={state.waste[state.waste.length - 1]}
               selected={selected?.zone === "waste"}
               onClick={onWasteClick}
@@ -375,6 +433,7 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
               <SlotView
                 key={suit}
                 theme={theme}
+                metrics={metrics}
                 card={state.foundations[suit][state.foundations[suit].length - 1]}
                 placeholder={SUIT_GLYPH[suit]}
                 onClick={() => onFoundationClick(suit)}
@@ -383,7 +442,7 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex" style={{ gap: metrics.gap }}>
             {state.tableau.map((col, ci) => (
               <div
                 key={ci}
@@ -391,15 +450,15 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
                 tabIndex={-1}
                 onClick={() => onColumnClick(ci, null)}
                 style={{
-                  width: CARD_W,
+                  width: metrics.cardW,
                   position: "relative",
-                  height: CARD_H + Math.max(0, col.length - 1) * STACK_OFFSET,
+                  height: metrics.cardH + Math.max(0, col.length - 1) * metrics.stackOffset,
                 }}
               >
                 {col.length === 0 && (
                   <div
                     className="absolute"
-                    style={{ width: CARD_W, height: CARD_H, border: `1px dashed ${theme.border}` }}
+                    style={{ width: metrics.cardW, height: metrics.cardH, border: `1px dashed ${theme.border}` }}
                     aria-hidden="true"
                   />
                 )}
@@ -407,9 +466,10 @@ const Solitaire: React.FC<SolitaireProps> = ({ darkMode, open, onClose }) => {
                   <CardView
                     key={card.id}
                     theme={theme}
+                    metrics={metrics}
                     card={card}
                     selected={isRunSelected(ci, idx)}
-                    style={{ top: idx * STACK_OFFSET }}
+                    style={{ top: idx * metrics.stackOffset }}
                     onClick={(e) => {
                       e.stopPropagation();
                       onColumnClick(ci, idx);

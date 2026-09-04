@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FiFolder, FiList, FiMail, FiUser } from "react-icons/fi";
 import { SectionKey } from "./constants";
 
@@ -18,6 +18,9 @@ export const LogoMark: React.FC<{ size?: number }> = ({ size = 16 }) => (
 
 interface WinControlsProps {
   dim?: boolean;
+  // The close button turns red on hover. Passed in rather than hardcoded so
+  // it stays the theme's danger color in both light and dark.
+  dangerColor?: string;
   onClose?: () => void;
   closeLabel?: string;
   onMinimize?: () => void;
@@ -30,6 +33,7 @@ interface WinControlsProps {
 
 export const WinControls: React.FC<WinControlsProps> = ({
   dim,
+  dangerColor,
   onClose,
   closeLabel = "Close window",
   onMinimize,
@@ -39,6 +43,7 @@ export const WinControls: React.FC<WinControlsProps> = ({
   maximized,
   maximizeLabel = "Maximize window",
 }) => {
+  const [closeHovered, setCloseHovered] = useState(false);
   const boxCls = (pressed?: boolean) =>
     `flex h-[18px] w-[18px] items-center justify-center border transition-colors ${
       dim ? "border-current opacity-40" : pressed ? "border-current bg-current/10 opacity-100" : "border-current opacity-70"
@@ -100,7 +105,10 @@ export const WinControls: React.FC<WinControlsProps> = ({
             onClose();
           }}
           aria-label={closeLabel}
-          className={`${boxCls()} hover:border-current hover:opacity-100 hover:text-[#e05d5d]`}
+          onMouseEnter={() => setCloseHovered(true)}
+          onMouseLeave={() => setCloseHovered(false)}
+          className={`${boxCls()} hover:border-current hover:opacity-100`}
+          style={closeHovered && dangerColor ? { color: dangerColor } : undefined}
         >
           <svg width="8" height="8" viewBox="0 0 8 8">
             <line x1="1" y1="1" x2="7" y2="7" stroke="currentColor" strokeWidth="1.2" />
