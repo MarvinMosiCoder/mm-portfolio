@@ -22,7 +22,7 @@ export const resumeDataMap: Record<string, ResumeData> = {
         "HTML / CSS / Tailwind",
         "jQuery",
       ],
-      backend: ["PHP (Laravel), CodeIgniter", "Python", "PostgreSQL"],
+      backend: ["PHP (Laravel), CodeIgniter", "Python (FastAPI)", "PostgreSQL","MySQL"],
       tools: [
         "Adobe Photoshop",
         "REST APIs",
@@ -31,6 +31,7 @@ export const resumeDataMap: Record<string, ResumeData> = {
         "CloudPanel",
         "cPanel",
         "N8N Automation",
+        "Docker"
       ],
     },
     experience: [

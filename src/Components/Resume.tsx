@@ -3,7 +3,6 @@ import { Mail, Phone, MapPin, Globe, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { FaArrowLeft, FaFileDownload, FaMoon, FaSun } from "react-icons/fa";
 import AOS from "aos";
-import "aos/dist/aos.css";
 import { getOsTheme } from "../theme/osTheme";
 
 export type ExperienceItem = {
@@ -194,7 +193,7 @@ export default function Resume({ data }: ResumeProps) {
           <div className="mt-6 border-t border-slate-300 pt-5">
             <div className="resume-print-grid grid grid-cols-1 md:grid-cols-[0.9fr_1.45fr] gap-8 print:gap-7">
               {/* LEFT COLUMN */}
-              <div className="space-y-7">
+              <div className="space-y-7 print:space-y-4">
                 <section className="break-inside-avoid-page">
                   <SidebarHeading>Contact</SidebarHeading>
 
@@ -334,7 +333,7 @@ export default function Resume({ data }: ResumeProps) {
               </div>
 
               {/* RIGHT COLUMN */}
-              <div className="space-y-7">
+              <div className="space-y-7 print:space-y-4">
                 {data.profile ? (
                   <section className="break-inside-avoid-page">
                     <SidebarHeading>Summary</SidebarHeading>
@@ -348,7 +347,7 @@ export default function Resume({ data }: ResumeProps) {
 
                 <div className="border-t border-slate-300" />
 
-                <section className="break-inside-avoid-page">
+                <section>
                   <MainHeading>Professional Experience</MainHeading>
 
                   <div className="relative border-l border-slate-300 pl-6 space-y-7">

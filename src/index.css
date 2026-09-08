@@ -104,6 +104,7 @@ textarea:-webkit-autofill {
   }
 
   .resume-print-page {
+    min-height: 0 !important;
     background: white !important;
     padding: 0 !important;
   }
@@ -111,19 +112,32 @@ textarea:-webkit-autofill {
   .resume-print-sheet {
     width: 210mm !important;
     max-width: 210mm !important;
-    min-height: 297mm !important;
+    min-height: 0 !important;
     margin: 0 auto !important;
     box-shadow: none !important;
   }
 
   .resume-print-content {
-    padding: 10mm !important;
+    padding: 8mm !important;
   }
 
   .resume-print-grid {
     display: grid !important;
     grid-template-columns: 0.9fr 1.45fr !important;
     gap: 7mm !important;
+  }
+
+  /* Let columns paginate instead of moving the entire grid to a new page. */
+  .resume-print-grid > div {
+    min-height: 0;
+  }
+
+  .resume-print-grid li {
+    line-height: 1.5;
+  }
+
+  .resume-print-sheet h2 {
+    break-after: avoid;
   }
 
   a {
