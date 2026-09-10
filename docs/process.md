@@ -156,9 +156,11 @@ When updating the UI:
    logos only.
 6. Keep CTA labels clear and action-focused, such as `View Resume`, `Contact Me`, and
    `Other projects`.
-7. Replace placeholder project links (anything containing `your-` in `src/data/projectsData.ts`)
-   when a real project URL is available — `AnotherProjects.tsx` renders those as "pending"
-   instead of a link until then.
+7. Project actions use **View** to open `ProjectDetails.tsx`, a shared OS-themed native dialog.
+   Maintain descriptions and feature lists in `src/data/projectsData.ts` and archive entries in
+   `src/data/otherProjectsData.ts`. Keep project IDs unique within each list. The dialog shows
+   title, organization, year, overview, features, and technology stack, with keyboard focus
+   containment, Escape dismissal, and focus restoration. External URLs are not used by these actions.
 8. Give any icon-only control an accessible name — `title` for the native tooltip plus
    `aria-label` for screen readers — and reveal hover-only affordances without changing layout
    (absolute positioning, not a new element in the flow).
@@ -396,3 +398,24 @@ No environment variables need to be configured — the app has no backend to poi
 - Keep public resume files and displayed resume data aligned.
 - If `LogoMark` changes, regenerate the favicon/app-icon set so the browser tab icon stays in
   sync with the in-app glyph.
+
+
+## Project image galleries
+
+`ProjectDetails.tsx` uses `ProjectGallery.tsx` for swipe/drag navigation, previous/next
+buttons, keyboard arrows, captions, and thumbnail selection. Images keep their full
+aspect ratio without cropping. No autoplay is used. Projects with no images hide the gallery entirely, leaving no blank image area or
+placeholder; broken image URLs show an unavailable message without blocking navigation.
+
+Store project screenshots under `public/projects-ss/<project-name>/` and add an optional
+`images` array to the entry in `projectsData.ts` or `otherProjectsData.ts`, for example:
+
+```ts
+images: [
+  { src: '/projects-ss/chartineer/dashboard.webp', alt: 'Chartineer trading dashboard', caption: 'Trading workspace' },
+  { src: '/projects-ss/chartineer/reports.webp', alt: 'Chartineer reports page', caption: 'Performance reports' },
+],
+```
+
+Use actual application screenshots and descriptive alt text. Paths are public URLs,
+not local Windows paths. Omit `images` until screenshots are available.

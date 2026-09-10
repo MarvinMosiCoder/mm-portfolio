@@ -407,3 +407,5 @@ code {
   overflow: auto;
   z-index: 1;
 }
+
+.project-details-dialog::backdrop { background: rgba(0, 0, 0, 0.65); }

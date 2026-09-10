@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight } from "react-icons/fi";
+import ProjectDetails from "./ProjectDetails";
 import Modal from "./Modal/Modal";
 import { projectsData, Project } from "../data/projectsData";
 import { getOsTheme, OsTheme } from "../theme/osTheme";
 
 const getClient = (madeAt: string) => madeAt.split("(")[0].trim();
-const isPlaceholderLink = (link: string) => !link || link.includes("your-");
 
 type ProjectsProps = { darkMode?: boolean };
 
@@ -14,6 +14,7 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
   const theme = getOsTheme(darkMode);
   const [filter, setFilter] = useState<string>("all");
   const [selectedId, setSelectedId] = useState<string>(projectsData[0].id);
+  const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState("");
 
@@ -153,25 +154,15 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
                   ))}
                 </div>
               </div>
-              {isPlaceholderLink(selected.link) ? (
-                <span
-                  className="os-mono text-xs font-semibold px-4 py-2.5 shrink-0 opacity-50 cursor-not-allowed"
-                  style={{ border: `1px solid ${theme.borderStrong}`, color: theme.textDim }}
-                  title="Link coming soon"
-                >
-                  LINK PENDING
-                </span>
-              ) : (
-                <a
-                  href={selected.link}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="os-mono text-xs font-semibold px-4 py-2.5 shrink-0 transition-colors"
-                  style={{ border: `1px solid ${theme.accent}`, color: theme.accent }}
-                >
-                  OPEN PROJECT →
-                </a>
-              )}
+              <button
+                type="button"
+                onClick={() => setDetailProject(selected)}
+                aria-label={`View ${selected.project_name} details`}
+                className="os-mono text-xs font-semibold px-4 py-2.5 shrink-0 transition-colors"
+                style={{ border: `1px solid ${theme.accent}`, color: theme.accent }}
+              >
+                VIEW &rarr;
+              </button>
             </div>
           )}
 
@@ -185,6 +176,8 @@ const Projects: React.FC<ProjectsProps> = ({ darkMode = true }) => {
           </Link>
         </div>
       </div>
+
+      {detailProject && <ProjectDetails project={detailProject} darkMode={darkMode} onClose={() => setDetailProject(null)} />}
 
       <Modal
         show={isModalOpen}

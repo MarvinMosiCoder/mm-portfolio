@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { getOsTheme } from "../theme/osTheme";
-import { projectsData } from "../data/projectsData";
+import { projectsData } from "../data/otherProjectsData";
 
-const isPlaceholderLink = (link: string) => !link || link.includes("your-");
+import { Project } from "../data/projectsData";
+import ProjectDetails from "./ProjectDetails";
 
 const AnotherProjects: React.FC = () => {
+  const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [darkMode] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
@@ -38,6 +40,7 @@ const AnotherProjects: React.FC = () => {
         backgroundSize: "32px 32px",
       }}
     >
+      {detailProject && <ProjectDetails project={detailProject} darkMode={darkMode} onClose={() => setDetailProject(null)} />}
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <Link
           to="/"
@@ -83,7 +86,7 @@ const AnotherProjects: React.FC = () => {
               <span>Year</span>
               <span>Made At</span>
               <span>Stack</span>
-              <span>Link</span>
+              <span>Details</span>
             </div>
 
             <div className="mt-2 md:mt-0">
@@ -106,21 +109,12 @@ const AnotherProjects: React.FC = () => {
                     <span className="os-mono text-[11px] truncate" style={{ color: theme.chipText }}>
                       {project.build_with.join(" · ")}
                     </span>
-                    {isPlaceholderLink(project.link) ? (
-                      <span className="os-mono text-[10px]" style={{ color: theme.textDim, opacity: 0.6 }}>
-                        pending
-                      </span>
-                    ) : (
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="os-mono text-[11px] font-semibold"
-                        style={{ color: theme.accent }}
-                      >
-                        open →
-                      </a>
-                    )}
+                    <button type="button" onClick={() => setDetailProject(project)}
+                      aria-label={`View ${project.project_name} details`}
+                      className="os-mono text-xs font-semibold py-2 text-left"
+                      style={{ color: theme.accent }}>
+                      View &rarr;
+                    </button>
                   </div>
 
                   {/* mobile row */}
@@ -147,6 +141,12 @@ const AnotherProjects: React.FC = () => {
                         </span>
                       ))}
                     </div>
+                    <button type="button" onClick={() => setDetailProject(project)}
+                      aria-label={`View ${project.project_name} details`}
+                      className="os-mono text-xs font-semibold py-2 text-left"
+                      style={{ color: theme.accent }}>
+                      View &rarr;
+                    </button>
                   </div>
                 </div>
               ))}

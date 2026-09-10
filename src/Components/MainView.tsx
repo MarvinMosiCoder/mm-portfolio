@@ -10,7 +10,7 @@ interface MainViewProps {
   onNavigateSection: (section: SectionKey) => void;
 }
 
-const STACK = ["PHP Laravel", "Python", "FastAPI", "PostgreSQL", "React", "TypeScript", "Tailwind", "MySQL", "n8n Automation", "CloudPanel", "cPanel"];
+const STACK = ["PHP(Laravel)", "Python(FastAPI)", "PostgreSQL", "React", "TypeScript", "Tailwind", "MySQL", "n8n Automation", "CloudPanel", "cPanel"];
 
 const MainView: React.FC<MainViewProps> = ({ darkMode, onNavigateSection }) => {
   const theme = getOsTheme(darkMode);
@@ -32,9 +32,9 @@ const MainView: React.FC<MainViewProps> = ({ darkMode, onNavigateSection }) => {
 
       <div className="os-sans space-y-4 text-sm leading-relaxed" style={{ color: theme.textMuted }}>
         <p>
-          I build business systems with Laravel, React, TypeScript, Tailwind, and MySQL — four years in, with a BSIT
-          degree and focused study in Computer Science behind it. I care about clean interfaces, reliable workflows,
-          and practical tools that help teams move faster.
+          Full Stack Web Developer with hands-on experience in designing, developing, and maintaining scalable web applications. 
+          Proficient in modern frontend and backend technologies, with a strong focus on performance, usability, and clean code practices. 
+          Adept at collaborating with cross-functional teams to deliver high-quality solutions aligned with business objectives.
         </p>
         <p>Off the clock: gaming and travel keep the curiosity sharp.</p>
       </div>
