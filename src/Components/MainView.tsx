@@ -36,7 +36,7 @@ const MainView: React.FC<MainViewProps> = ({ darkMode, onNavigateSection }) => {
           Proficient in modern frontend and backend technologies, with a strong focus on performance, usability, and clean code practices. 
           Adept at collaborating with cross-functional teams to deliver high-quality solutions aligned with business objectives.
         </p>
-        <p>Off the clock: gaming and travel keep the curiosity sharp.</p>
+        <p>Off the clock: Gaming and Travel keep the curiosity sharp.</p>
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">

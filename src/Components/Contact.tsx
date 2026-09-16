@@ -73,8 +73,17 @@ const Contact: React.FC<ContactProps> = ({ darkMode = true }) => {
           toast.success("Message sent successfully!");
           setFormData({ name: "", email: "", phone: "", message: "" });
         })
-        .catch(() => {
-          toast.error("Failed to send message.");
+        .catch((error: unknown) => {
+          const response = error as { status?: unknown; text?: unknown } | null;
+          const status = typeof response?.status === "number" ? response.status : undefined;
+          const detail = typeof response?.text === "string" ? response.text.trim() : "";
+          const reason = detail || (status === 0
+            ? "Could not connect to the email service. Check your connection and try again."
+            : "Please try again or use the direct email link.");
+          console.error("Contact message failed:", { status, detail });
+          toast.error(`Failed to send message${status ? ` (${status})` : ""}. ${reason}`, {
+            autoClose: false,
+          });
         })
         .finally(() => setLoading(false));
     } else {

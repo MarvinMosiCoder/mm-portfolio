@@ -21,7 +21,7 @@ const EXPERIENCE_DATA: ExperienceItem[] = [
     focus: "business systems, integrations, dashboards, internal tools",
     description:
       "Designed, implemented, and optimized software solutions, integrated various data sources and systems, collaborated with teams to address requirements, ensured compliance with industry standards, and conducted testing for reliability and performance.",
-    techs: ["PHP", "Laravel", "React", "TypeScript", "Tailwind", "jQuery", "MySQL"],
+    techs: ["PHP(Laravel)", "Python(FastAPI)", "React", "TypeScript", "Tailwind", "jQuery", "MySQL","n8n Automations","PostgreSQL"],
   },
   {
     period: "2021 — 2022",
