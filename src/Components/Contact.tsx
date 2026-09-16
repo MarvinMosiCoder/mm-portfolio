@@ -55,11 +55,18 @@ const Contact: React.FC<ContactProps> = ({ darkMode = true }) => {
     const errors = validate(formData);
     setFormErrors(errors);
     if (Object.keys(errors).length === 0) {
+      const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID?.trim();
+      const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID?.trim();
+      const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY?.trim();
+      if (!serviceId || !templateId || !publicKey) {
+        toast.error("Message sending is unavailable. Please use the direct email link.");
+        return;
+      }
       setLoading(true);
       emailjs
         .send(
-          "service_ohf7tvo",
-          "template_z5bw03j",
+          serviceId,
+          templateId,
           {
             to_name: "Marvin Mosico",
             name: formData.name,
@@ -67,7 +74,7 @@ const Contact: React.FC<ContactProps> = ({ darkMode = true }) => {
             phone: formData.phone,
             message: formData.message,
           },
-          "5W3ReZn8Qi7NCL4Vj"
+          publicKey
         )
         .then(() => {
           toast.success("Message sent successfully!");

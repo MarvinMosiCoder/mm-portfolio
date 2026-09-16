@@ -39,6 +39,11 @@ Install dependencies:
 npm install
 ```
 
+Copy `.env.example` to `.env` and set `REACT_APP_EMAILJS_SERVICE_ID`,
+`REACT_APP_EMAILJS_TEMPLATE_ID`, and `REACT_APP_EMAILJS_PUBLIC_KEY` from your EmailJS dashboard
+to enable contact messages. Restart the development server after changing these values.
+These public client settings are included in the browser build; use the EmailJS public key only.
+
 Start the development server:
 
 ```bash

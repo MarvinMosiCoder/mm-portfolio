@@ -66,8 +66,11 @@ Create a production build:
 npm run build
 ```
 
-No environment variables are required to run or build the app. `.env` only contains commented-out
-leftovers from an earlier Firebase experiment that was never wired up — safe to ignore or delete.
+The app can run and build without environment variables, but contact sending requires
+`REACT_APP_EMAILJS_SERVICE_ID`, `REACT_APP_EMAILJS_TEMPLATE_ID`, and
+`REACT_APP_EMAILJS_PUBLIC_KEY`. Copy `.env.example` to the git-ignored `.env` and fill in
+the EmailJS dashboard values. Restart the development server after changes. These are public
+client settings embedded at build time, not server secrets.
 
 ## Content Update Process
 
@@ -389,7 +392,9 @@ buckets that no longer exist.
 - Deploy the build output to the selected hosting provider.
 - Verify the live site routes after deployment (`/`, `/other-projects`, `/resume`).
 
-No environment variables need to be configured — the app has no backend to point at.
+Configure the three `REACT_APP_EMAILJS_*` variables in the hosting build environment before
+building to enable contact sending. Rebuild and redeploy after changing them. Gmail authorization
+is managed separately in the EmailJS dashboard.
 
 ## Maintenance Notes
 
