@@ -244,7 +244,7 @@ export default function Resume({ data }: ResumeProps) {
                           rel="noreferrer"
                           className="underline"
                         >
-                          LinkedIn Profile
+                          https://www.linkedin.com/in/marvin-mosico-0b1467210/
                         </a>
                       </div>
                     ) : null}
